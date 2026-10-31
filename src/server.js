@@ -1,4 +1,5 @@
 import express from 'express';
+import { pool } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -7,8 +8,13 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Route: health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+    try {
+        await pool.query('SELECT 1');
+        res.json({ status: 'ok', database: 'connected', time: new Date().toISOString() });
+    } catch (err) {
+        res.status(503).json({ status: 'error', database: 'unreachable', message: err.message });
+    }
 });
 
 // Start listening for requests 
