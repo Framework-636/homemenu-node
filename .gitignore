@@ -10,3 +10,6 @@ npm-debug.log*
 # OS junk
 Thumbs.db
 .DS_Store
+
+# Database dumps (real data - never commit)
+db/dumps/
