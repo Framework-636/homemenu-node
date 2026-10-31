@@ -1,0 +1,14 @@
+{
+  "name": "homemenu-node",
+  "version": "1.0.0",
+  "description": "HomeMenu.plus meal planning API, rebuilt in Node.js",
+  "main": "src/server.js",
+  "type":"module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "author": "Mitch Tully",
+  "license": "UNLICENSED",
+  "private": true
+}

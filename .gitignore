@@ -1,0 +1,12 @@
+# Dependencies (rebuilt by npm install)
+node_modules/
+
+# Secrets and local config
+.env
+
+# Logs
+npm-debug.log*
+
+# OS junk
+Thumbs.db
+.DS_Store
