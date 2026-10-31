@@ -1,5 +1,6 @@
 import express from 'express';
 import { pool } from './db.js';
+import recipesRouter from './routes/recipes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,15 @@ app.get('/api/health', async (req, res) => {
     } catch (err) {
         res.status(503).json({ status: 'error', database: 'unreachable', message: err.message });
     }
+});
+
+// Routes
+app.use('/api/recipes', recipesRouter);
+
+// Error handler (must be last, after all routes)
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error'});
 });
 
 // Start listening for requests 
