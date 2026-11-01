@@ -38,6 +38,15 @@ cp .env.example .env        # then fill in passwords
 docker compose up -d --build
 ```
 
+On first start, the database is created from `db/init/001_schema.sql` and filled with demo data from `db/init/002_seed.sql`: four public recipes, plus one private recipe for testing visibility rules.
+
+To reset to a fresh database:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
 The API runs at `http://localhost:3000`.
 
 ### Local development (hot reload)
@@ -65,6 +74,9 @@ npm run dev
 ## Project Structure
 
 ```
+db/init/
+  001_schema.sql     # Table definitions (no data)
+  002_seed.sql       # Demo data
 src/
   server.js          # App setup, middleware, error handler
   db.js              # MariaDB connection pool
@@ -84,7 +96,7 @@ Dockerfile           # API image (non-root, production deps only)
 
 ## Roadmap
 
-- [ ] Schema and sample seed data so the project runs out of the box
+- [x] Schema and sample seed data so the project runs out of the box
 - [ ] Authentication and per-user data
 - [ ] Create, update and delete endpoints
 - [ ] Automated tests
