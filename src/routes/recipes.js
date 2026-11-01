@@ -5,16 +5,17 @@ const router = Router();
 
 // GET /api/recipes - list all recipes (summary fields)
 router.get('/', async (req, res, next) => {
-    try {
-        const [rows] = await pool.query(
+  try {
+    const [rows] = await pool.query(
       `SELECT id, name, emoji, category, servings, prep_time, cook_time, season, last_made
        FROM recipes
        WHERE visibility = 'public'
-       ORDER BY name`);
-        res.json(rows);
-    } catch (err) {
-        next(err);
-    }
+       ORDER BY name`
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET /api/recipes/:id - one recipe with ingredients, instructions and tags
@@ -52,10 +53,7 @@ router.get('/:id', async (req, res, next) => {
          ORDER BY step_number`,
         [id]
       ),
-      pool.query(
-        'SELECT tag FROM recipe_tags WHERE recipe_id = ? ORDER BY tag',
-        [id]
-      ),
+      pool.query('SELECT tag FROM recipe_tags WHERE recipe_id = ? ORDER BY tag', [id]),
     ]);
 
     res.json({
