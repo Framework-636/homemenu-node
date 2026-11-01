@@ -6,7 +6,11 @@ const router = Router();
 // GET /api/recipes - list all recipes (summary fields)
 router.get('/', async (req, res, next) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, emoji, category, servings, prep_time, cook_time, season, last_made FROM recipes ORDER BY name');
+        const [rows] = await pool.query(
+      `SELECT id, name, emoji, category, servings, prep_time, cook_time, season, last_made
+       FROM recipes
+       WHERE visibility = 'public'
+       ORDER BY name`);
         res.json(rows);
     } catch (err) {
         next(err);
@@ -25,7 +29,7 @@ router.get('/:id', async (req, res, next) => {
       `SELECT id, name, emoji, category, servings, prep_time, cook_time,
               description, visibility, season, last_made, created_at, updated_at
        FROM recipes
-       WHERE id = ?`,
+       WHERE id = ? and visibility = 'public'`,
       [id]
     );
 
