@@ -54,11 +54,11 @@ npm run dev
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | API and database status |
-| GET | `/api/recipes` | List recipes (summary fields) |
-| GET | `/api/recipes/:id` | One recipe with ingredients, instructions and tags |
+| Method | Endpoint           | Description                                        |
+| ------ | ------------------ | -------------------------------------------------- |
+| GET    | `/api/health`      | API and database status                            |
+| GET    | `/api/recipes`     | List recipes (summary fields)                      |
+| GET    | `/api/recipes/:id` | One recipe with ingredients, instructions and tags |
 
 **Status codes:** `400` invalid ID · `404` recipe not found · `503` database unavailable · `500` unexpected server error
 
