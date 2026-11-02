@@ -5,6 +5,7 @@ A REST API for [HomeMenu.plus](https://homemenu.plus), a meal-planning app for r
 ## Tech Stack
 
 - **Node.js 26** with ES modules
+- **TypeScript** (strict), run directly by Node's built-in type stripping and checked with `tsc`. No build step.
 - **Express 5** for routing, middleware and centralized error handling
 - **MariaDB 11.4** via the `mysql2` driver, with a connection pool and parameterized queries
 - **Docker Compose** running the API and database as separate services on a private network
@@ -61,6 +62,14 @@ npm run dev
 
 `npm run dev` uses Node's built-in `--watch` and `--env-file`, with no extra tooling.
 
+Checks (the same ones CI will run):
+
+```bash
+npm run typecheck     # TypeScript types
+npm run lint          # ESLint
+npm run format:check  # Prettier
+```
+
 ## API Endpoints
 
 | Method | Endpoint           | Description                                        |
@@ -78,12 +87,13 @@ db/init/
   001_schema.sql     # Table definitions (no data)
   002_seed.sql       # Demo data
 src/
-  server.js          # App setup, middleware, error handler
-  db.js              # MariaDB connection pool
+  server.ts          # App setup, middleware, error handler
+  db.ts              # MariaDB connection pool (fails fast on missing env vars)
   routes/
-    recipes.js       # Recipe endpoints
+    recipes.ts       # Recipe endpoints with typed query results
 compose.yaml         # API + database services
 Dockerfile           # API image (non-root, production deps only)
+tsconfig.json        # TypeScript settings (type-check only, no build output)
 .env.example         # Required environment variables
 ```
 
@@ -93,6 +103,7 @@ Dockerfile           # API image (non-root, production deps only)
 - **Parallel queries:** recipe detail fetches ingredients, instructions and tags at the same time with `Promise.all`, rather than one JOIN that would multiply rows.
 - **Centralized errors:** routes pass errors to a single handler that logs details on the server and returns a generic message to clients.
 - **Container security:** the API image runs as the unprivileged `node` user, and secrets come from environment variables. They're never baked into the image.
+- **Typed queries:** each query declares the shape of its rows, so column names are checked and autocompleted.
 
 ## Roadmap
 

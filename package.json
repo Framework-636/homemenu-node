@@ -2,14 +2,15 @@
   "name": "homemenu-node",
   "version": "1.0.0",
   "description": "HomeMenu.plus meal planning API, rebuilt in Node.js",
-  "main": "src/server.js",
+  "main": "src/server.ts",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env src/server.js",
-    "dev": "node --watch --env-file=.env src/server.js",
+    "start": "node --env-file=.env src/server.ts",
+    "dev": "node --watch --env-file=.env src/server.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "typecheck": "tsc"
   },
   "author": "Mitch Tully",
   "license": "UNLICENSED",
