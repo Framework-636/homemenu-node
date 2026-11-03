@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from '../db.ts';
+import { z } from 'zod';
 
 // Row shapes returned by each query
 interface RecipeSummaryRow extends RowDataPacket {
@@ -38,6 +39,11 @@ interface TagRow extends RowDataPacket {
   tag: string;
 }
 
+// Request validation: the :id URL parameter must be a positive whole number
+const recipeIdParams = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
 const router = Router();
 
 // GET /api/recipes - list public recipes (summary fields)
@@ -57,11 +63,12 @@ router.get('/', async (req, res, next) => {
 
 // GET /api/recipes/:id - one public recipe with ingredients, instructions and tags
 router.get('/:id', async (req, res, next) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
+  const parsed = recipeIdParams.safeParse(req.params);
+  if (!parsed.success) {
     res.status(400).json({ error: 'Recipe id must be a positive integer' });
     return;
   }
+  const { id } = parsed.data;
 
   try {
     const [recipes] = await pool.query<RecipeDetailRow[]>(
