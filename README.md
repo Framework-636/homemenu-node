@@ -68,6 +68,7 @@ Checks (the same ones CI will run):
 npm run typecheck     # TypeScript types
 npm run lint          # ESLint
 npm run format:check  # Prettier
+npm test              # API tests (needs the database running)
 ```
 
 ## API Endpoints
@@ -104,11 +105,12 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - **Centralized errors:** routes pass errors to a single handler that logs details on the server and returns a generic message to clients.
 - **Container security:** the API image runs as the unprivileged `node` user, and secrets come from environment variables. They're never baked into the image.
 - **Typed queries:** each query declares the shape of its rows, so column names are checked and autocompleted.
+- **Integration tests:** Vitest and Supertest call the API in-process against the seeded database, covering success, not-found, private and invalid-input cases.
 
 ## Roadmap
 
 - [x] Schema and sample seed data so the project runs out of the box
 - [ ] Authentication and per-user data
 - [ ] Create, update and delete endpoints
-- [ ] Automated tests
+- [x] Automated tests
 - [ ] React + TypeScript front end

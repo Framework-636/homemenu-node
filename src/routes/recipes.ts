@@ -63,7 +63,7 @@ router.get('/', async (req, res, next) => {
 
 // GET /api/recipes/:id - one public recipe with ingredients, instructions and tags
 router.get('/:id', async (req, res, next) => {
-    const parsed = recipeIdParams.safeParse(req.params);
+  const parsed = recipeIdParams.safeParse(req.params);
   if (!parsed.success) {
     res.status(400).json({ error: 'Recipe id must be a positive integer' });
     return;
