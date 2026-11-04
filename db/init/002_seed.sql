@@ -3,10 +3,10 @@
 
 SET NAMES utf8mb4;
 
--- Demo user. The password_hash '!' can never match a real password,
--- so this account can't log in until authentication is added (#7).
+-- Demo user for local development and tests.
+-- Username: demo   Password: demo-password   (demo data only, never a real account)
 INSERT INTO users (id, username, display_name, email, password_hash, role, default_visibility)
-VALUES (1, 'demo', 'Demo Cook', 'demo@example.com', '!', 'user', 'public');
+VALUES (1, 'demo', 'Demo Cook', 'demo@example.com', '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'public');
 
 INSERT INTO recipes (id, user_id, name, emoji, category, servings, prep_time, cook_time, description, visibility, season) VALUES
   (1, 1, 'Sheet Pan Chicken Fajitas', '🌮', 'Dinner',    4, 15, 25, 'Peppers, onions and chicken roasted on one pan.',     'public',  'any'),
