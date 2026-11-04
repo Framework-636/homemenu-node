@@ -1,11 +1,15 @@
 import express, { type ErrorRequestHandler } from 'express';
 import { pool } from './db.ts';
 import recipesRouter from './routes/recipes.ts';
+import cookieParser from 'cookie-parser';
+import { loadUser } from './auth/middleware.ts';
 
 export const app = express();
 
 // Middleware: parse JSON request bodies
 app.use(express.json());
+app.use(cookieParser());
+app.use(loadUser);
 
 // Route: health check (verifies the database too)
 app.get('/api/health', async (req, res) => {
