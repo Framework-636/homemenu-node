@@ -43,6 +43,8 @@ docker compose up -d --build
 
 On first start, the database is created from `db/init/001_schema.sql` and filled with demo data from `db/init/002_seed.sql`: four public recipes, plus one private recipe for testing visibility rules.
 
+Demo login: username `demo`, password `demo-password` (seed data only).
+
 To reset to a fresh database:
 
 ```bash
@@ -80,8 +82,12 @@ npm test              # API tests (needs the database running)
 | GET    | `/api/health`      | API and database status                            |
 | GET    | `/api/recipes`     | List recipes (summary fields)                      |
 | GET    | `/api/recipes/:id` | One recipe with ingredients, instructions and tags |
+| POST   | `/api/auth/login`  | Log in with username or email; sets a session cookie |
+| POST   | `/api/auth/logout` | End the session and clear the cookie                 |
+| GET    | `/api/auth/me`     | The logged-in user, or 401                           |
 
-**Status codes:** `400` invalid ID · `404` recipe not found · `503` database unavailable · `500` unexpected server error
+**Status codes:** `400` invalid input · `401` not logged in or invalid login · `404` not found · `503` database unavailable · `500` unexpected server error
+
 
 ## Project Structure
 
@@ -108,11 +114,14 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - **Container security:** the API image runs as the unprivileged `node` user, and secrets come from environment variables. They're never baked into the image.
 - **Typed queries:** each query declares the shape of its rows, so column names are checked and autocompleted.
 - **Integration tests:** Vitest and Supertest call the API in-process against the seeded database, covering success, not-found, private and invalid-input cases.
+- **Server-side sessions:** random 256-bit tokens in an `HttpOnly`, `SameSite=Lax` cookie; the database stores only their SHA-256 hash, so a leaked table can't be replayed. Sessions can be revoked instantly, unlike JWTs.
+- **Login hardening:** bcrypt password hashes, one error message for unknown users and wrong passwords, and a dummy hash comparison so both take the same time.
+
 
 ## Roadmap
 
 - [x] Schema and sample seed data so the project runs out of the box
-- [ ] Authentication and per-user data
+- [x] Authentication and per-user data
 - [ ] Create, update and delete endpoints
 - [x] Automated tests
 - [ ] React + TypeScript front end
