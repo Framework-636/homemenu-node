@@ -1,5 +1,7 @@
 # HomeMenu API
 
+[![CI](https://github.com/Framework-636/homemenu-node/actions/workflows/ci.yml/badge.svg)](https://github.com/Framework-636/homemenu-node/actions/workflows/ci.yml)
+
 A REST API for [HomeMenu.plus](https://homemenu.plus), a meal-planning app for recipes, pantry tracking, meal plans and grocery lists. Rebuilt from its original plain-PHP backend into Node.js and Express, and containerized with Docker.
 
 ## Tech Stack
