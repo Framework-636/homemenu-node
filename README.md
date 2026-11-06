@@ -11,6 +11,7 @@ A REST API for [HomeMenu.plus](https://homemenu.plus), a meal-planning app for r
 - **Express 5** for routing, middleware and centralized error handling
 - **MariaDB 11.4** via the `mysql2` driver, with a connection pool and parameterized queries
 - **Docker Compose** running the API and database as separate services on a private network
+- **React 19 + Vite** front end in `client/`, with React Router for client-side routing
 
 ## Architecture
 
@@ -54,6 +55,18 @@ docker compose up -d
 
 The API runs at `http://localhost:3000`.
 
+### Front end
+
+The React app lives in `client/` and talks to the API through Vite's dev proxy:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. Requests to `/api` are forwarded to the API on port 3000.
+
 ### Local development (hot reload)
 
 Run the database in Docker and the API directly with Node:
@@ -91,6 +104,9 @@ npm test              # API tests (needs the database running)
 ## Project Structure
 
 ```
+client/              # React + TypeScript front end (Vite)
+  src/pages/         # Recipe list and detail pages
+  src/useApi.ts      # Data-loading hook (loading, errors, 404s, stale-request guard)
 db/init/
   001_schema.sql     # Table definitions (no data)
   002_seed.sql       # Demo data
@@ -122,4 +138,5 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - [x] Authentication and per-user data
 - [ ] Create, update and delete endpoints
 - [x] Automated tests
-- [ ] React + TypeScript front end
+- [x] React + TypeScript front end (recipe list and detail)
+- [ ] Login page and recipe forms in the front end
