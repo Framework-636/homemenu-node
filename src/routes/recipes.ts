@@ -46,14 +46,16 @@ const recipeIdParams = z.object({
 
 const router = Router();
 
-// GET /api/recipes - list public recipes (summary fields)
+// GET /api/recipes - public recipes, plus the logged-in user's own private ones
 router.get('/', async (req, res, next) => {
+  const userId = res.locals.user?.id ?? null;
   try {
     const [rows] = await pool.query<RecipeSummaryRow[]>(
       `SELECT id, name, emoji, category, servings, prep_time, cook_time, season, last_made
        FROM recipes
-       WHERE visibility = 'public'
-       ORDER BY name`
+       WHERE visibility = 'public' OR user_id = ?
+       ORDER BY name`,
+      [userId]
     );
     res.json(rows);
   } catch (err) {
@@ -61,22 +63,23 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// GET /api/recipes/:id - one public recipe with ingredients, instructions and tags
+// GET /api/recipes/:id - one recipe the caller may see, with ingredients, instructions and tags
 router.get('/:id', async (req, res, next) => {
   const parsed = recipeIdParams.safeParse(req.params);
+
   if (!parsed.success) {
     res.status(400).json({ error: 'Recipe id must be a positive integer' });
     return;
   }
   const { id } = parsed.data;
-
+  const userId = res.locals.user?.id ?? null;
   try {
     const [recipes] = await pool.query<RecipeDetailRow[]>(
       `SELECT id, name, emoji, category, servings, prep_time, cook_time,
               description, visibility, season, last_made, created_at, updated_at
        FROM recipes
-       WHERE id = ? AND visibility = 'public'`,
-      [id]
+       WHERE id = ? AND (visibility = 'public' OR user_id = ?)`,
+      [id, userId]
     );
 
     const recipe = recipes[0];
