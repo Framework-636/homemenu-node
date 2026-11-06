@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --env-file=.env src/server.ts",
     "dev": "node --watch --env-file=.env src/server.ts",
-    "lint": "eslint .",
+    "lint": "eslint src test vitest.config.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc",
