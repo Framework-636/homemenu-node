@@ -7,9 +7,11 @@ SET NAMES utf8mb4;
 --   demo     / demo-password   owns recipes 1-5 (5 is private)
 --   neighbor / demo-password   owns recipe 6 (private), used to test that you
 --                              can't see other people's private recipes
+--   writer   / demo-password   owns nothing; the create/update/delete tests use it
 INSERT INTO users (id, username, display_name, email, password_hash, role, default_visibility) VALUES
   (1, 'demo',     'Demo Cook',     'demo@example.com',     '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'public'),
-  (2, 'neighbor', 'Nosy Neighbor', 'neighbor@example.com', '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'private');
+  (2, 'neighbor', 'Nosy Neighbor', 'neighbor@example.com', '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'private'),
+  (3, 'writer',   'Test Writer',   'writer@example.com',   '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'private');
 
 INSERT INTO recipes (id, user_id, name, emoji, category, servings, prep_time, cook_time, description, visibility, season) VALUES
   (1, 1, 'Sheet Pan Chicken Fajitas', '🌮', 'Dinner',    4, 15, 25, 'Peppers, onions and chicken roasted on one pan.',     'public',  'any'),

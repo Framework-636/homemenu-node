@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import type { RowDataPacket } from 'mysql2';
-import { pool } from '../db.ts';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2';
+import type { PoolConnection } from 'mysql2/promise';
 import { z } from 'zod';
+import { pool } from '../db.ts';
+import { requireUser } from '../auth/middleware.ts';
 
 // Row shapes returned by each query
 interface RecipeSummaryRow extends RowDataPacket {
@@ -43,6 +45,78 @@ interface TagRow extends RowDataPacket {
 const recipeIdParams = z.object({
   id: z.coerce.number().int().positive(),
 });
+
+// Request validation for creating or updating a recipe.
+// Limits match (or are stricter than) the database columns.
+const recipeBody = z.object({
+  name: z.string().trim().min(1).max(160),
+  emoji: z.string().trim().min(1).max(8).default('🍽️'),
+  category: z
+    .enum(['Dinner', 'Lunch', 'Breakfast', 'Dessert', 'Snack', 'Soup', 'Baking', 'Other'])
+    .default('Dinner'),
+  servings: z.number().int().min(1).max(100).default(4),
+  prep_time: z.number().int().min(0).max(2880).default(0), // minutes, up to 48 hours
+  cook_time: z.number().int().min(0).max(2880).default(0),
+  description: z.string().trim().max(2000).nullable().default(null),
+  visibility: z.enum(['private', 'public']).default('private'),
+  season: z.enum(['any', 'spring', 'summer', 'fall', 'winter']).default('any'),
+  ingredients: z
+    .array(
+      z.object({
+        quantity: z.string().trim().max(30).default(''),
+        unit: z.string().trim().max(30).default(''),
+        ingredient: z.string().trim().min(1).max(160),
+      })
+    )
+    .max(100)
+    .default([]),
+  instructions: z.array(z.string().trim().min(1).max(2000)).max(100).default([]),
+  tags: z
+    .array(z.string().trim().toLowerCase().min(1).max(60))
+    .max(20)
+    .default([])
+    .transform((tags) => [...new Set(tags)]), // remove duplicates
+});
+
+type RecipeInput = z.infer<typeof recipeBody>;
+
+// Run several queries as one all-or-nothing unit.
+// If anything throws, every change inside is undone.
+async function withTransaction<T>(work: (conn: PoolConnection) => Promise<T>): Promise<T> {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const result = await work(conn);
+    await conn.commit();
+    return result;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release(); // always give the connection back to the pool
+  }
+}
+
+// Insert a recipe's ingredients, steps and tags. Array order becomes sort order.
+async function insertRecipeChildren(conn: PoolConnection, recipeId: number, input: RecipeInput) {
+  if (input.ingredients.length > 0) {
+    await conn.query(
+      'INSERT INTO recipe_ingredients (recipe_id, sort_order, quantity, unit, ingredient) VALUES ?',
+      [input.ingredients.map((ing, i) => [recipeId, i + 1, ing.quantity, ing.unit, ing.ingredient])]
+    );
+  }
+  if (input.instructions.length > 0) {
+    await conn.query(
+      'INSERT INTO recipe_instructions (recipe_id, step_number, instruction) VALUES ?',
+      [input.instructions.map((text, i) => [recipeId, i + 1, text])]
+    );
+  }
+  if (input.tags.length > 0) {
+    await conn.query('INSERT INTO recipe_tags (recipe_id, tag) VALUES ?', [
+      input.tags.map((tag) => [recipeId, tag]),
+    ]);
+  }
+}
 
 const router = Router();
 
@@ -112,6 +186,50 @@ router.get('/:id', async (req, res, next) => {
       instructions,
       tags: tags.map((t) => t.tag),
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/recipes - create a recipe owned by the logged-in user
+router.post('/', requireUser, async (req, res, next) => {
+  const parsed = recipeBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid recipe',
+      issues: parsed.error.issues.map((issue) => ({
+        path: issue.path.map(String).join('.'),
+        message: issue.message,
+      })),
+    });
+    return;
+  }
+  const input = parsed.data;
+  const userId = res.locals.user!.id; // requireUser guarantees a user
+
+  try {
+    const id = await withTransaction(async (conn) => {
+      const [result] = await conn.query<ResultSetHeader>(
+        `INSERT INTO recipes
+           (user_id, name, emoji, category, servings, prep_time, cook_time, description, visibility, season)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          input.name,
+          input.emoji,
+          input.category,
+          input.servings,
+          input.prep_time,
+          input.cook_time,
+          input.description,
+          input.visibility,
+          input.season,
+        ]
+      );
+      await insertRecipeChildren(conn, result.insertId, input);
+      return result.insertId;
+    });
+    res.status(201).json({ id });
   } catch (err) {
     next(err);
   }
