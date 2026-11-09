@@ -118,6 +118,17 @@ async function insertRecipeChildren(conn: PoolConnection, recipeId: number, inpu
   }
 }
 
+// Turn Zod's validation errors into a consistent 400 response body.
+function validationError(error: z.ZodError) {
+  return {
+    error: 'Invalid recipe',
+    issues: error.issues.map((issue) => ({
+      path: issue.path.map(String).join('.'),
+      message: issue.message,
+    })),
+  };
+}
+
 const router = Router();
 
 // GET /api/recipes - public recipes, plus the logged-in user's own private ones
@@ -195,13 +206,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', requireUser, async (req, res, next) => {
   const parsed = recipeBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({
-      error: 'Invalid recipe',
-      issues: parsed.error.issues.map((issue) => ({
-        path: issue.path.map(String).join('.'),
-        message: issue.message,
-      })),
-    });
+    res.status(400).json(validationError(parsed.error));
     return;
   }
   const input = parsed.data;
@@ -230,6 +235,95 @@ router.post('/', requireUser, async (req, res, next) => {
       return result.insertId;
     });
     res.status(201).json({ id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/recipes/:id - replace one of your own recipes (fields, ingredients, steps, tags)
+router.put('/:id', requireUser, async (req, res, next) => {
+  const params = recipeIdParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: 'Recipe id must be a positive integer' });
+    return;
+  }
+  const parsed = recipeBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json(validationError(parsed.error));
+    return;
+  }
+  const { id } = params.data;
+  const input = parsed.data;
+  const userId = res.locals.user!.id; // requireUser guarantees a user
+
+  try {
+    const found = await withTransaction(async (conn) => {
+      // Is this recipe ours? FOR UPDATE locks the row until we commit,
+      // so two edits at the same moment can't interleave.
+      const [owned] = await conn.query<RowDataPacket[]>(
+        'SELECT id FROM recipes WHERE id = ? AND user_id = ? FOR UPDATE',
+        [id, userId]
+      );
+      if (owned.length === 0) return false;
+
+      await conn.query(
+        `UPDATE recipes
+         SET name = ?, emoji = ?, category = ?, servings = ?, prep_time = ?, cook_time = ?,
+             description = ?, visibility = ?, season = ?
+         WHERE id = ?`,
+        [
+          input.name,
+          input.emoji,
+          input.category,
+          input.servings,
+          input.prep_time,
+          input.cook_time,
+          input.description,
+          input.visibility,
+          input.season,
+          id,
+        ]
+      );
+
+      // Replace the child rows: remove the old ones, insert the new list.
+      await conn.query('DELETE FROM recipe_ingredients WHERE recipe_id = ?', [id]);
+      await conn.query('DELETE FROM recipe_instructions WHERE recipe_id = ?', [id]);
+      await conn.query('DELETE FROM recipe_tags WHERE recipe_id = ?', [id]);
+      await insertRecipeChildren(conn, id, input);
+      return true;
+    });
+
+    if (!found) {
+      res.status(404).json({ error: 'Recipe not found' });
+      return;
+    }
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/recipes/:id - delete one of your own recipes
+// (ingredients, steps and tags go with it, via ON DELETE CASCADE)
+router.delete('/:id', requireUser, async (req, res, next) => {
+  const params = recipeIdParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: 'Recipe id must be a positive integer' });
+    return;
+  }
+  const { id } = params.data;
+  const userId = res.locals.user!.id;
+
+  try {
+    const [result] = await pool.query<ResultSetHeader>(
+      'DELETE FROM recipes WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    if (result.affectedRows === 0) {
+      res.status(404).json({ error: 'Recipe not found' });
+      return;
+    }
+    res.status(204).end();
   } catch (err) {
     next(err);
   }
