@@ -324,3 +324,73 @@ header {
   opacity: 0.6;
   cursor: default;
 }
+
+/* ---------- Badge and owner actions ---------- */
+
+.badge {
+  display: inline-block;
+  align-self: flex-start;
+  margin: 0.25rem 0;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.owner-actions .edit-link {
+  margin-bottom: 0;
+}
+
+.danger-link {
+  font: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.danger-link:hover {
+  text-decoration: underline;
+}
+
+.confirm-delete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  background: #fef2f2;
+}
+
+.confirm-delete button {
+  font: inherit;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+.confirm-delete .danger-btn {
+  border-color: #b91c1c;
+  background: #b91c1c;
+  color: white;
+}
+
+.confirm-delete button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

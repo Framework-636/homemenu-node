@@ -146,6 +146,7 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - **Writes are all-or-nothing:** a recipe and its ingredients, steps and tags are saved in one database transaction, so a failure halfway leaves nothing behind.
 - **Ownership enforced in SQL:** updates and deletes match on `id AND user_id`, so other people's recipes, public or private, return 404. The owner always comes from the session, never from the request body.
 - **One form, two pages:** `RecipeForm` only collects input; the new and edit pages decide what to do with it (POST or PUT). Rows use stable keys so adding, removing and reordering never mixes up what was typed. The browser checks obvious mistakes, and the API validates everything again.
+- **Delete asks twice, inline:** the first click only changes the button to "Yes, delete / Cancel", so nothing is lost by accident, and there's no browser popup.
 
 ## Roadmap
 
@@ -156,4 +157,4 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - [x] React + TypeScript front end (recipe list and detail)
 - [x] Login page in the front end
 - [x] Recipe forms (create and edit)
-- [ ] Delete button and private-recipe badge
+- [x] Delete button and private-recipe badge

@@ -40,6 +40,7 @@ describe('per-user recipe visibility', () => {
     const res = await agent.get('/api/recipes/5').expect(200);
     expect(res.body.name).toBe('Secret Family Chili');
     expect(res.body.visibility).toBe('private');
+    expect(res.body.user_id).toBe(1); // the front end needs this to show Edit and Delete
   });
 
   it("logged in: someone else's private recipe is a 404", async () => {

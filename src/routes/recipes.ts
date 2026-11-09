@@ -161,7 +161,7 @@ router.get('/:id', async (req, res, next) => {
   const userId = res.locals.user?.id ?? null;
   try {
     const [recipes] = await pool.query<RecipeDetailRow[]>(
-      `SELECT id, name, emoji, category, servings, prep_time, cook_time,
+      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time,
               description, visibility, season, last_made, created_at, updated_at
        FROM recipes
        WHERE id = ? AND (visibility = 'public' OR user_id = ?)`,

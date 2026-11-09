@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router';
 import { useApi } from '../useApi.ts';
 import type { RecipeDetail } from '../types.ts';
 import { useAuth } from '../auth/AuthContext.ts';
+import { DeleteRecipeButton } from '../components/DeleteRecipeButton.tsx';
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -27,10 +28,14 @@ export default function RecipeDetailPage() {
       <h1>
         <span className="emoji">{recipe.emoji}</span> {recipe.name}
       </h1>
+      {recipe.visibility === 'private' && <span className="badge">🔒 Private</span>}
       {user && recipe.user_id === user.id && (
-        <Link to={`/recipes/${recipe.id}/edit`} className="edit-link">
-          ✏️ Edit recipe
-        </Link>
+        <div className="owner-actions">
+          <Link to={`/recipes/${recipe.id}/edit`} className="edit-link">
+            ✏️ Edit recipe
+          </Link>
+          <DeleteRecipeButton recipeId={recipe.id} recipeName={recipe.name} />
+        </div>
       )}
       <p className="meta">
         {recipe.category} · prep {recipe.prep_time} min · cook {recipe.cook_time} min · serves{' '}
