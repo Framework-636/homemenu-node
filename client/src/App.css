@@ -95,3 +95,9 @@ header {
 .error {
   color: #b42318;
 }
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
