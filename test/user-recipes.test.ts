@@ -52,4 +52,13 @@ describe('per-user recipe visibility', () => {
     await agent.get('/api/recipes/6').expect(200);
     await agent.get('/api/recipes/5').expect(404);
   });
+
+  it('the list marks which recipes are private', async () => {
+    const agent = await loginAs('demo');
+    const res = await agent.get('/api/recipes').expect(200);
+    const chili = res.body.find((r: { name: string }) => r.name === 'Secret Family Chili');
+    const fajitas = res.body.find((r: { name: string }) => r.name === 'Sheet Pan Chicken Fajitas');
+    expect(chili.visibility).toBe('private');
+    expect(fajitas.visibility).toBe('public');
+  });
 });
