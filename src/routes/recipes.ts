@@ -137,7 +137,7 @@ router.get('/', async (req, res, next) => {
   const userId = res.locals.user?.id ?? null;
   try {
     const [rows] = await pool.query<RecipeSummaryRow[]>(
-      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time, season, visability, last_made
+      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time, season, visibility, last_made
        FROM recipes
        WHERE visibility = 'public' OR user_id = ?
        ORDER BY name`,
