@@ -33,3 +33,10 @@ export interface RecipeDetail extends RecipeSummary {
   instructions: Instruction[];
   tags: string[];
 }
+
+export interface User {
+  id: number;
+  username: string;
+  display_name: string;
+  role: string;
+}
