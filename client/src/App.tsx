@@ -3,6 +3,8 @@ import RecipeListPage from './pages/RecipeListPage.tsx';
 import RecipeDetailPage from './pages/RecipeDetailPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import { useAuth } from './auth/AuthContext.ts';
+import NewRecipePage from './pages/NewRecipePage.tsx';
+import EditRecipePage from './pages/EditRecipePage.tsx';
 import './App.css';
 
 export default function App() {
@@ -17,6 +19,7 @@ export default function App() {
         <nav className="user-nav">
           {checking ? null : user ? (
             <>
+              <Link to="/recipes/new">+ New recipe</Link>
               <span>{user.display_name}</span>
               <button onClick={() => void logout()}>Log out</button>
             </>
@@ -34,6 +37,8 @@ export default function App() {
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<p className="status">Page not found.</p>} />
+          <Route path="/recipes/new" element={<NewRecipePage />} />
+          <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
         </Routes>
       )}
     </main>
