@@ -68,6 +68,8 @@ npm run dev
 
 Open `http://localhost:5173`. Requests to `/api` are forwarded to the API on port 3000.
 
+Click **Log in** and use `demo` / `demo-password` to see that account's private recipe appear.
+
 ### Local development (hot reload)
 
 Run the database in Docker and the API directly with Node:
@@ -99,6 +101,9 @@ npm test              # API tests (needs the database running)
 | POST   | `/api/auth/login`  | Log in with username or email; sets a session cookie                                   |
 | POST   | `/api/auth/logout` | End the session and clear the cookie                                                   |
 | GET    | `/api/auth/me`     | The logged-in user, or 401                                                             |
+| POST   | `/api/recipes`     | Create a recipe (login required). Returns `201` with the new id                        |
+| PUT    | `/api/recipes/:id` | Replace one of your recipes. `204`, or `404` if it isn't yours                         |
+| DELETE | `/api/recipes/:id` | Delete one of your recipes and its ingredients, steps and tags. `204` or `404`         |
 
 **Status codes:** `400` invalid input · `401` not logged in or invalid login · `404` not found · `503` database unavailable · `500` unexpected server error
 
@@ -106,6 +111,7 @@ npm test              # API tests (needs the database running)
 
 ```
 client/              # React + TypeScript front end (Vite)
+  src/auth/          # Login state shared across pages (React context + useAuth hook)
   src/pages/         # Recipe list and detail pages
   src/useApi.ts      # Data-loading hook (loading, errors, 404s, stale-request guard)
 db/init/
@@ -114,6 +120,7 @@ db/init/
 src/
   server.ts          # App setup, middleware, error handler
   db.ts              # MariaDB connection pool (fails fast on missing env vars)
+
   routes/
     recipes.ts       # Recipe endpoints with typed query results
 compose.yaml         # API + database services
@@ -133,12 +140,16 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - **Server-side sessions:** random 256-bit tokens in an `HttpOnly`, `SameSite=Lax` cookie; the database stores only their SHA-256 hash, so a leaked table can't be replayed. Sessions can be revoked instantly, unlike JWTs.
 - **Login hardening:** bcrypt password hashes, one error message for unknown users and wrong passwords, and a dummy hash comparison so both take the same time.
 - **Per-user visibility in SQL:** `visibility = 'public' OR user_id = ?`. Logged out, the user id is `NULL`, which never matches, so no special case is needed. Other users' private recipes return 404, not 403, so their existence isn't revealed.
+- **Login in the front end:** the session cookie is `HttpOnly`, so JavaScript never sees it. The app asks `/api/auth/me` on load to learn who's logged in. Login state lives in a React context above the router, and the page tree is keyed by user id, so logging in or out remounts the pages and refetches their data.
+- **Writes are all-or-nothing:** a recipe and its ingredients, steps and tags are saved in one database transaction, so a failure halfway leaves nothing behind.
+- **Ownership enforced in SQL:** updates and deletes match on `id AND user_id`, so other people's recipes, public or private, return 404. The owner always comes from the session, never from the request body.
 
 ## Roadmap
 
 - [x] Schema and sample seed data so the project runs out of the box
 - [x] Authentication and per-user data
-- [ ] Create, update and delete endpoints
+- [x] Create, update and delete endpoints
 - [x] Automated tests
 - [x] React + TypeScript front end (recipe list and detail)
-- [ ] Login page and recipe forms in the front end
+- [x] Login page in the front end
+- [ ] Recipe forms (create, edit, delete)
