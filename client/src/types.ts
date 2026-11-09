@@ -9,6 +9,7 @@ export interface RecipeSummary {
   cook_time: number;
   season: string;
   last_made: string | null;
+  visibility: Visibility;
 }
 
 export interface Ingredient {
@@ -27,7 +28,6 @@ export interface Instruction {
 export interface RecipeDetail extends RecipeSummary {
   user_id: number;
   description: string | null;
-  visibility: 'private' | 'public';
   created_at: string;
   updated_at: string;
   ingredients: Ingredient[];

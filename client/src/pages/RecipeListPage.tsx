@@ -15,6 +15,7 @@ export default function RecipeListPage() {
           <Link to={`/recipes/${recipe.id}`} className="recipe-card">
             <span className="emoji">{recipe.emoji}</span>
             <h2>{recipe.name}</h2>
+            {recipe.visibility === 'private' && <span className="badge">🔒 Private</span>}
             <p>
               {recipe.category} · {recipe.prep_time + recipe.cook_time} min · serves{' '}
               {recipe.servings}

@@ -15,13 +15,13 @@ interface RecipeSummaryRow extends RowDataPacket {
   prep_time: number;
   cook_time: number;
   season: string;
+  visibility: 'private' | 'public';
   last_made: Date | null;
 }
 
 interface RecipeDetailRow extends RecipeSummaryRow {
   user_id: number;
   description: string | null;
-  visibility: 'private' | 'public';
   created_at: Date;
   updated_at: Date;
 }
@@ -137,7 +137,7 @@ router.get('/', async (req, res, next) => {
   const userId = res.locals.user?.id ?? null;
   try {
     const [rows] = await pool.query<RecipeSummaryRow[]>(
-      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time, season, last_made
+      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time, season, visibility, last_made
        FROM recipes
        WHERE visibility = 'public' OR user_id = ?
        ORDER BY name`,
@@ -161,7 +161,7 @@ router.get('/:id', async (req, res, next) => {
   const userId = res.locals.user?.id ?? null;
   try {
     const [recipes] = await pool.query<RecipeDetailRow[]>(
-      `SELECT id, name, emoji, category, servings, prep_time, cook_time,
+      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time,
               description, visibility, season, last_made, created_at, updated_at
        FROM recipes
        WHERE id = ? AND (visibility = 'public' OR user_id = ?)`,
