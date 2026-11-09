@@ -47,5 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
-  return <AuthContext value={{ user, checking, login, logout }}>{children}</AuthContext>;
+  function sessionExpired() {
+    setUser(null);
+  }
+
+  return (
+    <AuthContext value={{ user, checking, login, logout, sessionExpired }}>{children}</AuthContext>
+  );
 }

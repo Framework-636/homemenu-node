@@ -111,6 +111,8 @@ npm test              # API tests (needs the database running)
 
 ```
 client/              # React + TypeScript front end (Vite)
+  src/components/    # Shared UI (RecipeForm, used by the new and edit pages)
+  src/api.ts         # sendJson helper for POST/PUT/DELETE with consistent error handling
   src/auth/          # Login state shared across pages (React context + useAuth hook)
   src/pages/         # Recipe list and detail pages
   src/useApi.ts      # Data-loading hook (loading, errors, 404s, stale-request guard)
@@ -143,6 +145,7 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - **Login in the front end:** the session cookie is `HttpOnly`, so JavaScript never sees it. The app asks `/api/auth/me` on load to learn who's logged in. Login state lives in a React context above the router, and the page tree is keyed by user id, so logging in or out remounts the pages and refetches their data.
 - **Writes are all-or-nothing:** a recipe and its ingredients, steps and tags are saved in one database transaction, so a failure halfway leaves nothing behind.
 - **Ownership enforced in SQL:** updates and deletes match on `id AND user_id`, so other people's recipes, public or private, return 404. The owner always comes from the session, never from the request body.
+- **One form, two pages:** `RecipeForm` only collects input; the new and edit pages decide what to do with it (POST or PUT). Rows use stable keys so adding, removing and reordering never mixes up what was typed. The browser checks obvious mistakes, and the API validates everything again.
 
 ## Roadmap
 
@@ -152,4 +155,5 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - [x] Automated tests
 - [x] React + TypeScript front end (recipe list and detail)
 - [x] Login page in the front end
-- [ ] Recipe forms (create, edit, delete)
+- [x] Recipe forms (create and edit)
+- [ ] Delete button and private-recipe badge

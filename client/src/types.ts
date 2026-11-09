@@ -25,6 +25,7 @@ export interface Instruction {
 
 // A full recipe from GET /api/recipes/:id
 export interface RecipeDetail extends RecipeSummary {
+  user_id: number;
   description: string | null;
   visibility: 'private' | 'public';
   created_at: string;
@@ -39,4 +40,22 @@ export interface User {
   username: string;
   display_name: string;
   role: string;
+}
+
+export type Visibility = 'private' | 'public';
+
+// What the API accepts when creating or updating a recipe.
+export interface RecipeInput {
+  name: string;
+  emoji: string;
+  category: string;
+  servings: number;
+  prep_time: number;
+  cook_time: number;
+  description: string | null;
+  visibility: Visibility;
+  season: string;
+  ingredients: { quantity: string; unit: string; ingredient: string }[];
+  instructions: string[];
+  tags: string[];
 }

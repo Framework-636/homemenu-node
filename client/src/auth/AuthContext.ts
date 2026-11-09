@@ -6,6 +6,7 @@ export interface AuthState {
   checking: boolean; // true until we know whether a session already exists
   login: (username: string, password: string) => Promise<string | null>; // error message, or null on success
   logout: () => Promise<void>;
+  sessionExpired: () => void; // call when the API says 401
 }
 
 export const AuthContext = createContext<AuthState | null>(null);

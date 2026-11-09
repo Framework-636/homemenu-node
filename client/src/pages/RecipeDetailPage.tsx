@@ -1,10 +1,12 @@
 import { Link, useParams } from 'react-router';
 import { useApi } from '../useApi.ts';
 import type { RecipeDetail } from '../types.ts';
+import { useAuth } from '../auth/AuthContext.ts';
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
   const { data: recipe, loading, error, notFound } = useApi<RecipeDetail>(`/api/recipes/${id}`);
+  const { user } = useAuth();
 
   if (loading) return <p className="status">Loading recipe…</p>;
   if (notFound) {
@@ -25,6 +27,11 @@ export default function RecipeDetailPage() {
       <h1>
         <span className="emoji">{recipe.emoji}</span> {recipe.name}
       </h1>
+      {user && recipe.user_id === user.id && (
+        <Link to={`/recipes/${recipe.id}/edit`} className="edit-link">
+          ✏️ Edit recipe
+        </Link>
+      )}
       <p className="meta">
         {recipe.category} · prep {recipe.prep_time} min · cook {recipe.cook_time} min · serves{' '}
         {recipe.servings}
