@@ -45,7 +45,6 @@ docker compose up -d --build
 On first start, the database is created from `db/init/001_schema.sql` and filled with demo data from `db/init/002_seed.sql`: four public recipes, plus one private recipe for testing visibility rules.
 
 Demo login: username `demo`, password `demo-password` (seed data only).
-A second account, `neighbor` / `demo-password`, owns one private recipe. It's used to check that users can't see each other's private recipes.
 
 To reset to a fresh database:
 
@@ -117,8 +116,9 @@ client/              # React + TypeScript front end (Vite)
   src/pages/         # Recipe list and detail pages
   src/useApi.ts      # Data-loading hook (loading, errors, 404s, stale-request guard)
 db/init/
-  001_schema.sql     # Table definitions (no data)
-  002_seed.sql       # Demo data
+  db/init/001_schema.sql      # Tables and views
+  db/init/002_seed.sql        # Demo account and recipes (also used in production)
+  db/init/003_test_users.sql  # Extra accounts for tests and local development only
 src/
   server.ts          # App setup, middleware, error handler
   db.ts              # MariaDB connection pool (fails fast on missing env vars)
@@ -147,6 +147,8 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - **Ownership enforced in SQL:** updates and deletes match on `id AND user_id`, so other people's recipes, public or private, return 404. The owner always comes from the session, never from the request body.
 - **One form, two pages:** `RecipeForm` only collects input; the new and edit pages decide what to do with it (POST or PUT). Rows use stable keys so adding, removing and reordering never mixes up what was typed. The browser checks obvious mistakes, and the API validates everything again.
 - **Delete asks twice, inline:** the first click only changes the button to "Yes, delete / Cancel", so nothing is lost by accident, and there's no browser popup.
+- **Security headers:** `helmet` sets a Content Security Policy, `nosniff`, HSTS and clickjacking protection, and removes `X-Powered-By`.
+- **Login rate limiting:** 10 failed logins per IP address in 15 minutes, then even correct passwords are refused until the window passes. Behind the production proxy, `trust proxy` makes sure the limit applies to each visitor rather than to Apache.
 
 ## Roadmap
 

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { pool } from '../db.ts';
 import { requireUser } from '../auth/middleware.ts';
 import { createSession, deleteSession, SESSION_COOKIE, SESSION_DAYS } from '../auth/sessions.ts';
+import { rateLimit } from 'express-rate-limit';
 
 interface LoginUserRow extends RowDataPacket {
   id: number;
@@ -17,6 +18,17 @@ interface LoginUserRow extends RowDataPacket {
 const loginBody = z.object({
   username: z.string().trim().min(1).max(120),
   password: z.string().min(1).max(200),
+});
+
+// Slow down password guessing: after 10 failed logins from one IP address
+// in 15 minutes, refuse further login attempts until the window passes.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  skipSuccessfulRequests: true, // only failed attempts count
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
 });
 
 const cookieOptions: CookieOptions = {
@@ -33,7 +45,7 @@ const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 12);
 const router = Router();
 
 // POST /api/auth/login - check credentials, start a session, set the cookie
-router.post('/login', async (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res, next) => {
   const parsed = loginBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: 'Username and password are required' });

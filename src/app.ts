@@ -4,8 +4,17 @@ import recipesRouter from './routes/recipes.ts';
 import cookieParser from 'cookie-parser';
 import { loadUser } from './auth/middleware.ts';
 import authRouter from './routes/auth.ts';
+import helmet from 'helmet';
 
 export const app = express();
+
+// In production the API sits behind Apache, which forwards each request.
+// Trust one proxy hop, so req.ip is the visitor's real address (not Apache's).
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+app.use(helmet()); // security headers on every response
 
 // Middleware: parse JSON request bodies
 app.use(express.json());
