@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build": "npm run build --prefix client"
   },
   "author": "Mitch Tully",
   "license": "UNLICENSED",

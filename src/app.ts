@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { loadUser } from './auth/middleware.ts';
 import authRouter from './routes/auth.ts';
 import helmet from 'helmet';
+import path from 'node:path';
 
 export const app = express();
 
@@ -35,6 +36,26 @@ app.get('/api/health', async (req, res) => {
 
 // Routes
 app.use('/api/recipes', recipesRouter);
+
+// Unknown API URLs get a JSON 404 (not an HTML page or the React app).
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
+// In production, Express also serves the built React app from client/dist.
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(import.meta.dirname, '..', 'client', 'dist');
+
+  // Real files: /assets/index-abc123.js, /favicon.svg, …
+  app.use(express.static(clientDist));
+
+  // Every other GET (like /recipes/5 or /login) gets index.html,
+  // and React Router shows the right page from the URL.
+  app.use((req, res, next) => {
+    if (req.method !== 'GET') return next();
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 // Error handler (must be last, after all routes)
 const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
