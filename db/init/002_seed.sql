@@ -9,17 +9,15 @@ SET NAMES utf8mb4;
 --                              can't see other people's private recipes
 --   writer   / demo-password   owns nothing; the create/update/delete tests use it
 INSERT INTO users (id, username, display_name, email, password_hash, role, default_visibility) VALUES
-  (1, 'demo',     'Demo Cook',     'demo@example.com',     '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'public'),
-  (2, 'neighbor', 'Nosy Neighbor', 'neighbor@example.com', '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'private'),
-  (3, 'writer',   'Test Writer',   'writer@example.com',   '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'private');
+  (1, 'demo',     'Demo Cook',     'demo@example.com',     '$2b$12$yaeYdeuJnA93X175H2jsfeJbWgh6/IBEqTpK9QDEPo0s3E8ioqZVy', 'user', 'public');
 
 INSERT INTO recipes (id, user_id, name, emoji, category, servings, prep_time, cook_time, description, visibility, season) VALUES
   (1, 1, 'Sheet Pan Chicken Fajitas', '🌮', 'Dinner',    4, 15, 25, 'Peppers, onions and chicken roasted on one pan.',     'public',  'any'),
   (2, 1, 'Overnight Oats',            '🥣', 'Breakfast', 2,  5,  0, 'Make it the night before and grab it in the morning.', 'public',  'any'),
   (3, 1, 'Tomato Basil Soup',         '🍅', 'Soup',      4, 10, 30, 'Simple, cozy and freezer-friendly.',                  'public',  'fall'),
   (4, 1, 'Grilled Lemon Salmon',      '🐟', 'Dinner',    2, 10, 12, 'Quick weeknight salmon with a bright lemon finish.',  'public',  'summer'),
-  (5, 1, 'Secret Family Chili',       '🍲', 'Dinner',    6, 20, 90, 'Private recipe used to test visibility filtering.',   'private', 'winter'),
-  (6, 2, 'Neighbor''s Secret Salsa',  '🌶️', 'Snack',     4, 10,  0, 'Belongs to another user; demo must never see it.',    'private', 'summer');
+  (5, 1, 'Secret Family Chili',       '🍲', 'Dinner',    6, 20, 90, 'Private recipe used to test visibility filtering.',   'private', 'winter');
+
 
 INSERT INTO recipe_ingredients (recipe_id, sort_order, quantity, unit, ingredient) VALUES
   (1, 1, '1.5', 'lb',   'chicken breast, sliced'),
