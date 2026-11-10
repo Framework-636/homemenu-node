@@ -14,6 +14,11 @@ describe('security headers', () => {
     expect(res.headers['content-security-policy']).toBeDefined();
     expect(res.headers['x-powered-by']).toBeUndefined();
   });
+
+  it('returns a JSON 404 for unknown API routes', async () => {
+    const res = await request(app).get('/api/does-not-exist').expect(404);
+    expect(res.body.error).toBe('Not found');
+  });
 });
 
 describe('login rate limiting', () => {

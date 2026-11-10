@@ -55,6 +55,17 @@ docker compose up -d
 
 The API runs at `http://localhost:3000`.
 
+### Production mode
+
+In production, Express serves the built React app as well as the API, so the whole site runs on one port:
+
+```bash
+npm run build
+NODE_ENV=production npm start
+```
+
+(On Windows PowerShell: `$env:NODE_ENV = 'production'; npm start`.)
+
 ### Front end
 
 The React app lives in `client/` and talks to the API through Vite's dev proxy:
@@ -149,6 +160,7 @@ tsconfig.json        # TypeScript settings (type-check only, no build output)
 - **Delete asks twice, inline:** the first click only changes the button to "Yes, delete / Cancel", so nothing is lost by accident, and there's no browser popup.
 - **Security headers:** `helmet` sets a Content Security Policy, `nosniff`, HSTS and clickjacking protection, and removes `X-Powered-By`.
 - **Login rate limiting:** 10 failed logins per IP address in 15 minutes, then even correct passwords are refused until the window passes. Behind the production proxy, `trust proxy` makes sure the limit applies to each visitor rather than to Apache.
+- **One server in production:** Express serves the built React files and falls back to `index.html` for app URLs, so refreshing on `/recipes/5` works. Unknown `/api` URLs return a JSON 404 instead of the app's HTML.
 
 ## Roadmap
 
