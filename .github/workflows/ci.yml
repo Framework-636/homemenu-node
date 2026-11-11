@@ -78,3 +78,24 @@ jobs:
       - name: Build client (includes type check)
         run: npm run build
         working-directory: client
+
+deploy:
+  needs: check
+  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  runs-on: ubuntu-latest
+  concurrency:
+    group: production
+    cancel-in-progress: false
+  steps:
+    - name: Deploy to beta.homemenu.plus
+      env:
+        SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        HOST: ${{ secrets.DEPLOY_HOST }}
+        PORT: ${{ secrets.DEPLOY_PORT }}
+      run: |
+        mkdir -p ~/.ssh
+        printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+        ssh -T -i ~/.ssh/deploy_key -p "$PORT" "homemenu636@$HOST"
