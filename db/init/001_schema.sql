@@ -297,7 +297,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_uca1400_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `v_unlinked_pantry` AS select 'staple' AS `pantry_type`,`user_staples`.`id` AS `id`,`user_staples`.`user_id` AS `user_id`,NULL AS `quantity`,NULL AS `expires_on` from `user_staples` where `user_staples`.`ingredient_id` is null union all select 'pantry' AS `pantry_type`,`user_pantry`.`id` AS `id`,`user_pantry`.`user_id` AS `user_id`,`user_pantry`.`quantity` AS `quantity`,`user_pantry`.`expires_on` AS `expires_on` from `user_pantry` where `user_pantry`.`ingredient_id` is null */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
