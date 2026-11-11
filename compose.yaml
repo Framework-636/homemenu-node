@@ -24,6 +24,7 @@ services:
     container_name: homemenu-api
     restart: unless-stopped
     environment:
+      HOST: 0.0.0.0
       PORT: 3000
       DB_HOST: db
       DB_PORT: 3306
