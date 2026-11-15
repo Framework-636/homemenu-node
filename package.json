@@ -7,13 +7,14 @@
   "scripts": {
     "start": "node --env-file=.env src/server.ts",
     "dev": "node --watch --env-file=.env src/server.ts",
-    "lint": "eslint src test vitest.config.ts",
+    "lint": "eslint src test scripts vitest.config.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "npm run build --prefix client"
+    "build": "npm run build --prefix client",
+    "migrate": "node --env-file-if-exists=.env scripts/migrate.ts"
   },
   "author": "Mitch Tully",
   "license": "UNLICENSED",
