@@ -55,6 +55,9 @@ jobs:
             docker exec -i ${{ job.services.db.id }} mariadb -uroot -pci-root-password homemenu < "$f"
           done
 
+      - name: Run migrations
+        run: npm run migrate
+
       - name: Typecheck
         run: npm run typecheck
 

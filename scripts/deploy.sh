@@ -12,6 +12,7 @@ cd "$HOME/apps/homemenu-node"
 echo "Deploying: $(git log --oneline -1)"
 
 npm ci --omit=dev
+npm run migrate
 npm ci --prefix client
 npm run build
 
