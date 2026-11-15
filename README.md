@@ -53,6 +53,12 @@ docker compose down -v
 docker compose up -d
 ```
 
+Then apply the database migrations (needed after every fresh database):
+
+```bash
+npm run migrate
+```
+
 The API runs at `http://localhost:3000`.
 
 ### Production mode
@@ -120,26 +126,35 @@ npm test              # API tests (needs the database running)
 ## Project Structure
 
 ```
-client/              # React + TypeScript front end (Vite)
-  src/components/    # Shared UI (RecipeForm, used by the new and edit pages)
-  src/api.ts         # sendJson helper for POST/PUT/DELETE with consistent error handling
-  src/auth/          # Login state shared across pages (React context + useAuth hook)
-  src/pages/         # Recipe list and detail pages
-  src/useApi.ts      # Data-loading hook (loading, errors, 404s, stale-request guard)
-db/init/
-  db/init/001_schema.sql      # Tables and views
-  db/init/002_seed.sql        # Demo account and recipes (also used in production)
-  db/init/003_test_users.sql  # Extra accounts for tests and local development only
+client/                  # React + TypeScript front end (Vite)
+  src/api.ts             # sendJson helper for POST/PUT/DELETE with consistent error handling
+  src/auth/              # Login state shared across pages (React context + useAuth hook)
+  src/components/        # Shared UI (RecipeForm, used by the new and edit pages)
+  src/pages/             # Recipe list, detail, login, and new/edit pages
+  src/useApi.ts          # Data-loading hook (loading, errors, 404s, stale-request guard)
+db/
+  init/                  # Baseline: builds a fresh database
+    001_schema.sql       # Tables as of the baseline
+    002_seed.sql         # Demo account and recipes (also used in production)
+    003_test_users.sql   # Extra accounts for tests and local development only
+  migrations/            # Schema changes after the baseline, applied in order by npm run migrate
+scripts/
+  migrate.ts             # Applies pending migrations
+  deploy.sh              # Install, migrate, build, restart, health check (on the server)
+  auto-deploy.sh         # Cron job: deploys when main has new commits
 src/
-  server.ts          # App setup, middleware, error handler
-  db.ts              # MariaDB connection pool (fails fast on missing env vars)
-
+  app.ts                 # Express app: middleware, routes, error handler, serves the React build
+  server.ts              # Starts listening (HOST/PORT)
+  db.ts                  # MariaDB connection pool (fails fast on missing env vars)
+  auth/                  # Sessions and login middleware
   routes/
-    recipes.ts       # Recipe endpoints with typed query results
-compose.yaml         # API + database services
-Dockerfile           # API image (non-root, production deps only)
-tsconfig.json        # TypeScript settings (type-check only, no build output)
-.env.example         # Required environment variables
+    auth.ts              # Login (rate-limited), logout, current user
+    recipes.ts           # Recipes: list, detail, create, update, delete
+test/                    # Integration tests (Vitest + Supertest) against a real database
+compose.yaml             # Local database (and optional API container)
+Dockerfile               # API image (non-root, production deps only)
+tsconfig.json            # TypeScript settings (type-check only, no build output)
+.env.example             # Environment variables to copy into .env
 ```
 
 ## Design Notes
