@@ -32,4 +32,24 @@ fi
 failed_commit=""
 failed_count=0
 if [ -f "$FAILED_FILE" ]; then
-  read -r failed_commit failed_count <
+  read -r failed_commit failed_count < "$FAILED_FILE" || true
+fi
+if [ "$failed_commit" != "$target" ]; then
+  failed_count=0 # a different (newer) commit starts with a clean slate
+fi
+if [ "$failed_count" -ge "$MAX_ATTEMPTS" ]; then
+  exit 0 # gave up on this commit; waiting for a new one
+fi
+
+attempt=$((failed_count + 1))
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') deploying $(git log --oneline -1 "$target") (attempt $attempt of $MAX_ATTEMPTS) ==="
+git merge --ff-only origin/main
+
+if bash scripts/deploy.sh; then
+  echo "$target" > "$DEPLOYED_FILE"
+  rm -f "$FAILED_FILE"
+else
+  echo "$target $attempt" > "$FAILED_FILE"
+  echo "=== deploy failed (attempt $attempt of $MAX_ATTEMPTS) ===" >&2
+  exit 1
+fi

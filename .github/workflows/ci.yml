@@ -67,6 +67,9 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+      - name: Check shell scripts
+        run: shellcheck --severity=warning scripts/*.sh
+
       - name: Run tests
         run: npm test
 
