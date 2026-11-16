@@ -23,7 +23,7 @@ pm2 restart homemenu-beta
 
 # Give the app a moment to start, then check quietly until it answers.
 sleep 3
-for attempt in 1 2 3 4 5 6 7 8 9 10; do
+for _ in 1 2 3 4 5 6 7 8 9 10; do
   if body="$(curl -fs "$HEALTH_URL")"; then
     echo "$body"
     echo "Deploy OK"
