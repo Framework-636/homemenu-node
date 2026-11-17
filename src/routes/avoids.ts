@@ -3,6 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { z } from 'zod';
 import { pool } from '../db.ts';
 import { requireUser } from '../auth/middleware.ts';
+import { canUseIngredient, isDuplicateKey, validationError } from './shared.ts';
 
 interface AvoidRow extends RowDataPacket {
   ingredient_id: number;
@@ -18,20 +19,6 @@ const ingredientIdParams = z.object({
 const addAvoidBody = z.object({
   ingredient_id: z.number().int().positive(),
 });
-
-function validationError(error: z.ZodError) {
-  return {
-    error: 'Invalid avoid entry',
-    issues: error.issues.map((issue) => ({
-      path: issue.path.map(String).join('.'),
-      message: issue.message,
-    })),
-  };
-}
-
-function isDuplicateKey(err: unknown): boolean {
-  return (err as { code?: string }).code === 'ER_DUP_ENTRY';
-}
 
 const router = Router();
 
@@ -54,17 +41,13 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const parsed = addAvoidBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json(validationError(parsed.error));
+    res.status(400).json(validationError(parsed.error, 'Invalid avoid entry'));
     return;
   }
   const userId = res.locals.user!.id;
   const { ingredient_id } = parsed.data;
 
-  const [found] = await pool.query<RowDataPacket[]>(
-    'SELECT id FROM ingredients WHERE id = ? AND (created_by IS NULL OR created_by = ?)',
-    [ingredient_id, userId]
-  );
-  if (found.length === 0) {
+  if (!(await canUseIngredient(userId, ingredient_id))) {
     res.status(400).json({ error: 'Unknown ingredient' });
     return;
   }
