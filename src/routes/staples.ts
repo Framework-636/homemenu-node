@@ -3,6 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { z } from 'zod';
 import { pool } from '../db.ts';
 import { requireUser } from '../auth/middleware.ts';
+import { canUseIngredient, isDuplicateKey, validationError } from './shared.ts';
 
 interface StapleRow extends RowDataPacket {
   id: number;
@@ -24,22 +25,6 @@ const addStapleBody = z.object({
 const updateStapleBody = z.object({
   in_stock: z.boolean(),
 });
-
-// Turn Zod's validation errors into a consistent 400 response body.
-function validationError(error: z.ZodError) {
-  return {
-    error: 'Invalid staple',
-    issues: error.issues.map((issue) => ({
-      path: issue.path.map(String).join('.'),
-      message: issue.message,
-    })),
-  };
-}
-
-// MariaDB reports a UNIQUE key violation with this code.
-function isDuplicateKey(err: unknown): boolean {
-  return (err as { code?: string }).code === 'ER_DUP_ENTRY';
-}
 
 const router = Router();
 
@@ -64,18 +49,14 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const parsed = addStapleBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json(validationError(parsed.error));
+    res.status(400).json(validationError(parsed.error, 'Invalid staple'));
     return;
   }
   const userId = res.locals.user!.id;
   const { ingredient_id } = parsed.data;
 
   // Only shared ingredients or the user's own can be added.
-  const [found] = await pool.query<RowDataPacket[]>(
-    'SELECT id FROM ingredients WHERE id = ? AND (created_by IS NULL OR created_by = ?)',
-    [ingredient_id, userId]
-  );
-  if (found.length === 0) {
+  if (!(await canUseIngredient(userId, ingredient_id))) {
     res.status(400).json({ error: 'Unknown ingredient' });
     return;
   }
@@ -104,12 +85,12 @@ router.patch('/:id', async (req, res) => {
     return;
   }
   if (!body.success) {
-    res.status(400).json(validationError(body.error));
+    res.status(400).json(validationError(body.error, 'Invalid staple'));
     return;
   }
 
   const [result] = await pool.query<ResultSetHeader>(
-    "UPDATE kitchen_items SET in_stock = ? WHERE id = ? AND user_id = ? AND kind = 'staple'",
+    "UPDATE kitchen_items SET in_stock = ?, not_found_on = NULL WHERE id = ? AND user_id = ? AND kind = 'staple'",
     [body.data.in_stock, params.data.id, res.locals.user!.id]
   );
   if (result.affectedRows === 0) {

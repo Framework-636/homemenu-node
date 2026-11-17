@@ -109,25 +109,32 @@ npm test              # API tests (needs the database running)
 
 ## API Endpoints
 
-| Method | Endpoint                    | Description                                                                            |
-| ------ | --------------------------- | -------------------------------------------------------------------------------------- |
-| GET    | `/api/health`               | API and database status                                                                |
-| POST   | `/api/auth/login`           | Log in with username or email; sets a session cookie                                   |
-| POST   | `/api/auth/logout`          | End the session and clear the cookie                                                   |
-| GET    | `/api/auth/me`              | The logged-in user, or 401                                                             |
-| GET    | `/api/recipes`              | Public recipes, plus the logged-in user's private ones                                 |
-| GET    | `/api/recipes/:id`          | One recipe with ingredients, steps and tags. Someone else's private recipe returns 404 |
-| POST   | `/api/recipes`              | Create a recipe (login required). Returns `201` with the new id                        |
-| PUT    | `/api/recipes/:id`          | Replace one of your recipes. `204`, or `404` if it isn't yours                         |
-| DELETE | `/api/recipes/:id`          | Delete one of your recipes and its ingredients, steps and tags. `204` or `404`         |
-| GET    | `/api/ingredients?q=`       | Search the shared ingredient catalog (login required)                                  |
-| GET    | `/api/staples`              | Your staples, sorted by category (login required)                                      |
-| POST   | `/api/staples`              | Add a staple `{ ingredient_id }`. `201`, or `409` if it's already in your kitchen      |
-| PATCH  | `/api/staples/:id`          | Mark a staple in stock or out `{ in_stock }`. `204`, or `404` if it isn't yours        |
-| DELETE | `/api/staples/:id`          | Remove one of your staples. `204` or `404`                                             |
-| GET    | `/api/avoids`               | Your avoid list: ingredients never to suggest (login required)                         |
-| POST   | `/api/avoids`               | Avoid an ingredient `{ ingredient_id }`. `201`, or `409` if already avoided            |
-| DELETE | `/api/avoids/:ingredientId` | Stop avoiding an ingredient. `204` or `404`                                            |
+| Method | Endpoint                             | Description                                                                            |
+| ------ | ------------------------------------ | -------------------------------------------------------------------------------------- |
+| GET    | `/api/health`                        | API and database status                                                                |
+| POST   | `/api/auth/login`                    | Log in with username or email; sets a session cookie                                   |
+| POST   | `/api/auth/logout`                   | End the session and clear the cookie                                                   |
+| GET    | `/api/auth/me`                       | The logged-in user, or 401                                                             |
+| GET    | `/api/recipes`                       | Public recipes, plus the logged-in user's private ones                                 |
+| GET    | `/api/recipes/:id`                   | One recipe with ingredients, steps and tags. Someone else's private recipe returns 404 |
+| POST   | `/api/recipes`                       | Create a recipe (login required). Returns `201` with the new id                        |
+| PUT    | `/api/recipes/:id`                   | Replace one of your recipes. `204`, or `404` if it isn't yours                         |
+| DELETE | `/api/recipes/:id`                   | Delete one of your recipes and its ingredients, steps and tags. `204` or `404`         |
+| GET    | `/api/ingredients?q=`                | Search the shared ingredient catalog (login required)                                  |
+| GET    | `/api/staples`                       | Your staples, sorted by category (login required)                                      |
+| POST   | `/api/staples`                       | Add a staple `{ ingredient_id }`. `201`, or `409` if it's already in your kitchen      |
+| PATCH  | `/api/staples/:id`                   | Mark a staple in stock or out `{ in_stock }`. `204`, or `404` if it isn't yours        |
+| DELETE | `/api/staples/:id`                   | Remove one of your staples. `204` or `404`                                             |
+| GET    | `/api/avoids`                        | Your avoid list: ingredients never to suggest (login required)                         |
+| POST   | `/api/avoids`                        | Avoid an ingredient `{ ingredient_id }`. `201`, or `409` if already avoided            |
+| DELETE | `/api/avoids/:ingredientId`          | Stop avoiding an ingredient. `204` or `404`                                            |
+| GET    | `/api/grocery`                       | Grocery list: out-of-stock staples plus manual and recipe items, by category           |
+| POST   | `/api/grocery/items`                 | Add an item `{ ingredient_id }` or `{ name }`, optionally `{ recipe_id }`. `201`       |
+| POST   | `/api/grocery/staples/:id/got-it`    | Got it: puts the staple back in stock. `204` or `404`                                  |
+| POST   | `/api/grocery/staples/:id/not-found` | Couldn't find it: stays on the list, dated. `204` or `404`                             |
+| POST   | `/api/grocery/items/:id/got-it`      | Got it: removes the item. `204` or `404`                                               |
+| POST   | `/api/grocery/items/:id/not-found`   | Couldn't find it: stays on the list, dated. `204` or `404`                             |
+| DELETE | `/api/grocery/items/:id`             | Remove an item. `204` or `404`                                                         |
 
 **Status codes:** `400` invalid input · `401` not logged in or invalid login · `404` not found · `503` database unavailable · `500` unexpected server error
 
