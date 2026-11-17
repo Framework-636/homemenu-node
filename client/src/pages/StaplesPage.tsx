@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router';
 import { useAuth } from '../auth/AuthContext.ts';
 import { sendJson } from '../api.ts';
+import IngredientSearch from '../components/IngredientSearch.tsx';
 import type { Ingredient, Staple } from '../types.ts';
 
 // The page itself only checks login, then hands off to StaplesManager.
@@ -18,9 +19,6 @@ function StaplesManager() {
   const [staples, setStaples] = useState<Staple[] | null>(null); // null = still loading
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0); // bump to reload the list
-
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Ingredient[]>([]);
 
   const reload = () => setReloadKey((k) => k + 1);
 
@@ -46,28 +44,6 @@ function StaplesManager() {
     };
   }, [reloadKey, sessionExpired]);
 
-  // Search the catalog 250 ms after the user stops typing.
-  useEffect(() => {
-    const q = query.trim();
-    if (!q) return;
-    let ignore = false;
-    const timer = setTimeout(async () => {
-      const res = await fetch(`/api/ingredients?q=${encodeURIComponent(q)}`);
-      if (ignore) return;
-      if (res.status === 401) {
-        sessionExpired();
-        return;
-      }
-      if (!res.ok) return;
-      const data = (await res.json()) as Ingredient[];
-      if (!ignore) setResults(data);
-    }, 250);
-    return () => {
-      ignore = true;
-      clearTimeout(timer); // typing again cancels the pending search
-    };
-  }, [query, sessionExpired]);
-
   async function addStaple(ingredient: Ingredient) {
     setError(null);
     const res = await sendJson<{ id: number }>('POST', '/api/staples', {
@@ -81,7 +57,6 @@ function StaplesManager() {
       setError(res.error);
       return;
     }
-    setQuery('');
     reload();
   }
 
@@ -121,10 +96,6 @@ function StaplesManager() {
     return error ? <p className="status error">{error}</p> : <p className="status">Loading…</p>;
   }
 
-  // Hide search results that are already staples.
-  const owned = new Set(staples.map((s) => s.ingredient_id));
-  const matches = query.trim() ? results.filter((i) => !owned.has(i.id)).slice(0, 8) : [];
-
   // Group staples by category (the API already sorts by category, then name).
   const groups = new Map<string, Staple[]>();
   for (const staple of staples) {
@@ -143,30 +114,12 @@ function StaplesManager() {
         {outCount > 0 ? ` · ${outCount} out of stock` : ' · all in stock'}
       </p>
 
-      <div className="staple-search">
-        <input
-          type="search"
-          placeholder="Add a staple: start typing (milk, rice, salsa…)"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search ingredients to add"
-        />
-        {matches.length > 0 && (
-          <ul className="staple-results">
-            {matches.map((ingredient) => (
-              <li key={ingredient.id}>
-                <button type="button" onClick={() => void addStaple(ingredient)}>
-                  <span>
-                    {ingredient.emoji} {ingredient.name}
-                  </span>
-                  <span className="staple-category">{ingredient.category}</span>
-                  <span className="staple-add">+ Add</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <IngredientSearch
+        excludeIds={new Set(staples.map((s) => s.ingredient_id))}
+        onPick={(ingredient) => void addStaple(ingredient)}
+        placeholder="Add a staple: start typing (milk, rice, salsa…)"
+        actionLabel="+ Add"
+      />
 
       {error && <p className="status error">{error}</p>}
 

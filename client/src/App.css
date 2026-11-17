@@ -405,12 +405,12 @@ header {
   margin-top: 0;
 }
 
-.staple-search {
+.ingredient-search {
   position: relative;
   margin: 1rem 0 1.5rem;
 }
 
-.staple-search input {
+.ingredient-search input {
   width: 100%;
   padding: 0.6rem 0.75rem;
   font-size: 1rem;
@@ -419,7 +419,7 @@ header {
   box-sizing: border-box;
 }
 
-.staple-results {
+.ingredient-results {
   list-style: none;
   margin: 0.25rem 0 0;
   padding: 0;
@@ -428,7 +428,7 @@ header {
   overflow: hidden;
 }
 
-.staple-results button {
+.ingredient-results button {
   display: flex;
   width: 100%;
   gap: 0.75rem;
@@ -442,20 +442,20 @@ header {
   cursor: pointer;
 }
 
-.staple-results li:last-child button {
+.ingredient-results li:last-child button {
   border-bottom: 0;
 }
 
-.staple-results button:hover {
+.ingredient-results button:hover {
   background: #f5f8f5;
 }
 
-.staple-category {
+.ingredient-category {
   color: #888;
   font-size: 0.85rem;
 }
 
-.staple-add {
+.ingredient-add {
   margin-left: auto;
   color: #2e7d32;
   font-weight: 600;
@@ -516,5 +516,43 @@ header {
 }
 
 .staple-remove:hover {
+  color: #c62828;
+}
+
+/* ---------- Avoid page ---------- */
+.avoid-intro {
+  color: #666;
+  margin-top: 0;
+}
+
+.avoid-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.avoid-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.avoid-name {
+  flex: 1;
+  color: #c62828;
+}
+
+.avoid-remove {
+  border: 0;
+  background: none;
+  font-size: 1.25rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0 0.4rem;
+}
+
+.avoid-remove:hover {
   color: #c62828;
 }

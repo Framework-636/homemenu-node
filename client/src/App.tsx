@@ -6,6 +6,7 @@ import { useAuth } from './auth/AuthContext.ts';
 import NewRecipePage from './pages/NewRecipePage.tsx';
 import EditRecipePage from './pages/EditRecipePage.tsx';
 import StaplesPage from './pages/StaplesPage.tsx';
+import AvoidPage from './pages/AvoidPage.tsx';
 import './App.css';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           {checking ? null : user ? (
             <>
               <Link to="/staples">Staples</Link>
+              <Link to="/avoid">Avoid</Link>
               <Link to="/recipes/new">+ New recipe</Link>
               <span>{user.display_name}</span>
               <button onClick={() => void logout()}>Log out</button>
@@ -41,6 +43,7 @@ export default function App() {
           <Route path="*" element={<p className="status">Page not found.</p>} />
           <Route path="/recipes/new" element={<NewRecipePage />} />
           <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
+          <Route path="/avoid" element={<AvoidPage />} />
           <Route path="/staples" element={<StaplesPage />} />
         </Routes>
       )}
