@@ -3,7 +3,7 @@ import { pool } from './db.ts';
 import ingredientsRouter from './routes/ingredients.ts';
 import staplesRouter from './routes/staples.ts';
 import recipesRouter from './routes/recipes.ts';
-
+import avoidsRouter from './routes/avoids.ts';
 import cookieParser from 'cookie-parser';
 import { loadUser } from './auth/middleware.ts';
 import authRouter from './routes/auth.ts';
@@ -41,6 +41,7 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/recipes', recipesRouter);
 app.use('/api/ingredients', ingredientsRouter);
 app.use('/api/staples', staplesRouter);
+app.use('/api/avoids', avoidsRouter);
 
 // Unknown API URLs get a JSON 404 (not an HTML page or the React app).
 app.use('/api', (_req, res) => {

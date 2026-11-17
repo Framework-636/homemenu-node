@@ -77,3 +77,11 @@ export interface Ingredient {
   category: string;
   emoji: string;
 }
+
+// One row from GET /api/avoids
+export interface Avoid {
+  ingredient_id: number;
+  name: string;
+  category: string;
+  emoji: string;
+}
