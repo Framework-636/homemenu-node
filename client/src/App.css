@@ -394,3 +394,127 @@ header {
   opacity: 0.6;
   cursor: default;
 }
+
+/* ---------- Staples page ---------- */
+.staples h1 {
+  margin-bottom: 0.25rem;
+}
+
+.staples-summary {
+  color: #666;
+  margin-top: 0;
+}
+
+.staple-search {
+  position: relative;
+  margin: 1rem 0 1.5rem;
+}
+
+.staple-search input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.staple-results {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.staple-results button {
+  display: flex;
+  width: 100%;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  background: white;
+  border: 0;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.staple-results li:last-child button {
+  border-bottom: 0;
+}
+
+.staple-results button:hover {
+  background: #f5f8f5;
+}
+
+.staple-category {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.staple-add {
+  margin-left: auto;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.staple-group h2 {
+  font-size: 1rem;
+  color: #555;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.staple-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.staple {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.staple-name {
+  flex: 1;
+}
+
+.staple.out .staple-name {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.stock-toggle {
+  min-width: 5.5rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid #2e7d32;
+  background: #e8f5e9;
+  color: #2e7d32;
+  cursor: pointer;
+}
+
+.staple.out .stock-toggle {
+  border-color: #c62828;
+  background: #ffebee;
+  color: #c62828;
+}
+
+.staple-remove {
+  border: 0;
+  background: none;
+  font-size: 1.25rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0 0.4rem;
+}
+
+.staple-remove:hover {
+  color: #c62828;
+}

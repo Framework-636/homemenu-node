@@ -59,3 +59,21 @@ export interface RecipeInput {
   instructions: string[];
   tags: string[];
 }
+
+// One row from GET /api/staples
+export interface Staple {
+  id: number; // the kitchen_items row id (used for PATCH/DELETE)
+  ingredient_id: number;
+  name: string;
+  category: string;
+  emoji: string;
+  in_stock: boolean;
+}
+
+// One row from GET /api/ingredients
+export interface Ingredient {
+  id: number;
+  name: string;
+  category: string;
+  emoji: string;
+}

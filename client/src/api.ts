@@ -1,4 +1,4 @@
-// One place for POST, PUT and DELETE requests to the API.
+// One place for POST, PUT, PATCH and DELETE requests to the API.
 
 export interface FieldIssue {
   path: string; // e.g. "name" or "ingredients.0.ingredient"
@@ -22,7 +22,7 @@ function parseJson(text: string): unknown {
 }
 
 export async function sendJson<T = unknown>(
-  method: 'POST' | 'PUT' | 'DELETE',
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   url: string,
   body?: unknown
 ): Promise<SendResult<T>> {
