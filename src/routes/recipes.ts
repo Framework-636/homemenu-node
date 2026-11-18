@@ -16,7 +16,8 @@ interface RecipeSummaryRow extends RowDataPacket {
   cook_time: number;
   season: string;
   visibility: 'private' | 'public';
-  last_made: Date | null;
+  last_made: string | null; // 'YYYY-MM-DD': when this user last cooked it
+  saved: number; // 1 if this user bookmarked it (MariaDB returns EXISTS as 0 or 1)
 }
 
 interface RecipeDetailRow extends RecipeSummaryRow {
@@ -130,6 +131,15 @@ function validationError(error: z.ZodError) {
   };
 }
 
+// Two extra columns that depend on who is asking. Each needs the user id once,
+// so queries using this pass it twice before their own parameters.
+// Logged out, the id is NULL: it matches no rows, giving "never made" and "not saved".
+const PER_USER_COLUMNS = `
+  (SELECT DATE_FORMAT(MAX(c.cooked_on), '%Y-%m-%d')
+     FROM cook_log c WHERE c.recipe_id = r.id AND c.user_id = ?) AS last_made,
+  EXISTS (SELECT 1 FROM saved_recipes s
+           WHERE s.recipe_id = r.id AND s.user_id = ?) AS saved`;
+
 const router = Router();
 
 // GET /api/recipes - public recipes, plus the logged-in user's own private ones
@@ -137,13 +147,15 @@ router.get('/', async (req, res, next) => {
   const userId = res.locals.user?.id ?? null;
   try {
     const [rows] = await pool.query<RecipeSummaryRow[]>(
-      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time, season, visibility, last_made
-       FROM recipes
-       WHERE visibility = 'public' OR user_id = ?
-       ORDER BY name`,
-      [userId]
+      `SELECT r.id, r.user_id, r.name, r.emoji, r.category, r.servings, r.prep_time, r.cook_time,
+              r.season, r.visibility, ${PER_USER_COLUMNS}
+       FROM recipes r
+       WHERE r.visibility = 'public' OR r.user_id = ?
+       ORDER BY r.name`,
+      [userId, userId, userId]
     );
-    res.json(rows);
+    // Send true/false instead of 1/0.
+    res.json(rows.map((row) => ({ ...row, saved: row.saved === 1 })));
   } catch (err) {
     next(err);
   }
@@ -161,11 +173,11 @@ router.get('/:id', async (req, res, next) => {
   const userId = res.locals.user?.id ?? null;
   try {
     const [recipes] = await pool.query<RecipeDetailRow[]>(
-      `SELECT id, user_id, name, emoji, category, servings, prep_time, cook_time,
-              description, visibility, season, last_made, created_at, updated_at
-       FROM recipes
-       WHERE id = ? AND (visibility = 'public' OR user_id = ?)`,
-      [id, userId]
+      `SELECT r.id, r.user_id, r.name, r.emoji, r.category, r.servings, r.prep_time, r.cook_time,
+              r.description, r.visibility, r.season, r.created_at, r.updated_at, ${PER_USER_COLUMNS}
+       FROM recipes r
+       WHERE r.id = ? AND (r.visibility = 'public' OR r.user_id = ?)`,
+      [userId, userId, id, userId]
     );
 
     const recipe = recipes[0];
@@ -194,6 +206,7 @@ router.get('/:id', async (req, res, next) => {
 
     res.json({
       ...recipe,
+      saved: recipe.saved === 1,
       ingredients,
       instructions,
       tags: tags.map((t) => t.tag),

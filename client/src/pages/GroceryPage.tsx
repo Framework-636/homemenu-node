@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router';
 import { useAuth } from '../auth/AuthContext.ts';
 import { sendJson } from '../api.ts';
+import { shortDate } from '../dates.ts';
 import IngredientSearch from '../components/IngredientSearch.tsx';
 import type { GroceryItem, Ingredient } from '../types.ts';
 
@@ -25,15 +26,6 @@ function itemKey(item: GroceryItem) {
 function actionUrl(item: GroceryItem, action: 'got-it' | 'not-found') {
   const kind = item.source === 'staple' ? 'staples' : 'items';
   return `/api/grocery/${kind}/${item.id}/${action}`;
-}
-
-// '2026-11-17' -> 'Nov 17'. Built from the parts so the time zone can't shift the day.
-function shortDate(isoDate: string) {
-  const [year, month, day] = isoDate.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 function GroceryList() {
