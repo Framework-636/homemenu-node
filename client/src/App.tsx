@@ -7,6 +7,7 @@ import NewRecipePage from './pages/NewRecipePage.tsx';
 import EditRecipePage from './pages/EditRecipePage.tsx';
 import StaplesPage from './pages/StaplesPage.tsx';
 import AvoidPage from './pages/AvoidPage.tsx';
+import GroceryPage from './pages/GroceryPage.tsx';
 import './App.css';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
         <nav className="user-nav">
           {checking ? null : user ? (
             <>
+              <Link to="/grocery">Grocery</Link>
               <Link to="/staples">Staples</Link>
               <Link to="/avoid">Avoid</Link>
               <Link to="/recipes/new">+ New recipe</Link>
@@ -45,6 +47,7 @@ export default function App() {
           <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
           <Route path="/avoid" element={<AvoidPage />} />
           <Route path="/staples" element={<StaplesPage />} />
+          <Route path="/grocery" element={<GroceryPage />} />
         </Routes>
       )}
     </main>
