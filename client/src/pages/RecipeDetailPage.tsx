@@ -15,7 +15,7 @@ export default function RecipeDetailPage() {
     return (
       <div className="status">
         <p>Recipe not found.</p>
-        <Link to="/">Back to all recipes</Link>
+        <Link to="/recipes">Back to all recipes</Link>
       </div>
     );
   }
@@ -23,7 +23,7 @@ export default function RecipeDetailPage() {
 
   return (
     <article className="recipe-detail">
-      <Link to="/" className="back">
+      <Link to="/recipes" className="back">
         ← All recipes
       </Link>
       <h1>

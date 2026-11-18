@@ -17,3 +17,13 @@ export function shortDate(isoDate: string): string {
     day: 'numeric',
   });
 }
+
+// '2026-11-17' -> 'Tuesday, November 17'
+export function longDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}

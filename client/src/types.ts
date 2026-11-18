@@ -98,3 +98,38 @@ export interface GroceryItem {
   not_found_on: string | null; // 'YYYY-MM-DD' once marked "couldn't find it"
   recipe_name: string | null; // set when the item was added for a recipe
 }
+
+// One dish on the menu, from GET /api/menu
+export interface MenuPick {
+  slot: 'safe' | 'medium' | 'new';
+  reason: string; // why it's on the menu, e.g. "You've made this twice"
+  recipe: {
+    id: number;
+    name: string;
+    emoji: string;
+    category: string;
+    servings: number;
+    prep_time: number;
+    cook_time: number;
+    last_made: string | null;
+    times_cooked: number;
+    saved: boolean;
+  };
+}
+
+// A dish the user has taken off the menu for now
+export interface SnoozedRecipe {
+  id: number;
+  name: string;
+  emoji: string;
+  snoozed_until: string; // 'YYYY-MM-DD': first day it can come back
+}
+
+// The whole response from GET /api/menu
+export interface Menu {
+  meal: string;
+  date: string;
+  roll: number;
+  picks: MenuPick[];
+  snoozed: SnoozedRecipe[];
+}
