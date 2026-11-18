@@ -556,3 +556,116 @@ header {
 .avoid-remove:hover {
   color: #c62828;
 }
+/* ---------- Grocery page ---------- */
+.grocery h1 {
+  margin-bottom: 0.25rem;
+}
+
+.grocery-summary {
+  color: #666;
+  margin-top: 0;
+}
+
+.grocery .ingredient-search {
+  margin-bottom: 0.5rem;
+}
+
+.grocery-custom {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.grocery-custom input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.grocery-custom button {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #2e7d32;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: white;
+  cursor: pointer;
+}
+
+.grocery-custom button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.grocery-group h2 {
+  font-size: 1rem;
+  color: #555;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.grocery-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.grocery-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.grocery-name {
+  flex: 1;
+  min-width: 10rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.grocery-note {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.grocery-missing {
+  color: #b45309;
+}
+
+.grocery-got,
+.grocery-not-found {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.grocery-got {
+  border: 1px solid #2e7d32;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.grocery-not-found {
+  border: 1px solid #ccc;
+  background: white;
+  color: #555;
+}
+
+.grocery-remove {
+  border: 0;
+  background: none;
+  font-size: 1.25rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0 0.4rem;
+}
+
+.grocery-remove:hover {
+  color: #c62828;
+}

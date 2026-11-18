@@ -85,3 +85,14 @@ export interface Avoid {
   category: string;
   emoji: string;
 }
+
+// One row from GET /api/grocery
+export interface GroceryItem {
+  source: 'staple' | 'manual' | 'recipe';
+  id: number; // staple: kitchen_items id; manual/recipe: grocery_items id
+  name: string;
+  category: string;
+  emoji: string;
+  not_found_on: string | null; // 'YYYY-MM-DD' once marked "couldn't find it"
+  recipe_name: string | null; // set when the item was added for a recipe
+}
