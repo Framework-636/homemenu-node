@@ -3,6 +3,7 @@ import { useApi } from '../useApi.ts';
 import type { RecipeDetail } from '../types.ts';
 import { useAuth } from '../auth/AuthContext.ts';
 import { DeleteRecipeButton } from '../components/DeleteRecipeButton.tsx';
+import RecipeActions from '../components/RecipeActions.tsx';
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -41,6 +42,9 @@ export default function RecipeDetailPage() {
         {recipe.category} · prep {recipe.prep_time} min · cook {recipe.cook_time} min · serves{' '}
         {recipe.servings}
       </p>
+      {user && (
+        <RecipeActions key={recipe.id} recipe={recipe} isOwner={recipe.user_id === user.id} />
+      )}
       {recipe.description && <p>{recipe.description}</p>}
       {recipe.tags.length > 0 && (
         <ul className="tags">

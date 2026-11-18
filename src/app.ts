@@ -9,6 +9,7 @@ import { loadUser } from './auth/middleware.ts';
 import authRouter from './routes/auth.ts';
 import helmet from 'helmet';
 import groceryRouter from './routes/grocery.ts';
+import recipeActionsRouter from './routes/recipe-actions.ts';
 import path from 'node:path';
 
 export const app = express();
@@ -40,6 +41,7 @@ app.get('/api/health', async (req, res) => {
 
 // Routes
 app.use('/api/recipes', recipesRouter);
+app.use('/api/recipes', recipeActionsRouter);
 app.use('/api/ingredients', ingredientsRouter);
 app.use('/api/staples', staplesRouter);
 app.use('/api/avoids', avoidsRouter);

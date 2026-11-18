@@ -669,3 +669,98 @@ header {
 .grocery-remove:hover {
   color: #c62828;
 }
+
+/* ---------- Recipe actions: We made this, Save ---------- */
+.recipe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.made-btn,
+.save-btn {
+  font: inherit;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.made-btn {
+  border: 1px solid #2e7d32;
+  background: #2e7d32;
+  color: white;
+}
+
+.save-btn {
+  margin-left: auto;
+  border: 1px solid #ccc;
+  background: white;
+  color: #555;
+}
+
+.save-btn.saved {
+  border-color: #b45309;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.recipe-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.made-today {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.last-made {
+  color: #616e7c;
+  font-size: 0.9rem;
+}
+
+.link-btn {
+  font: inherit;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #616e7c;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.recipe-actions-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* ---------- Recipe list filters ---------- */
+.recipe-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.filter-chip {
+  font: inherit;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: white;
+  color: #555;
+  cursor: pointer;
+}
+
+.filter-chip.active {
+  border-color: #2e7d32;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.saved-badge {
+  margin-left: 0.35rem;
+}

@@ -1,6 +1,7 @@
 // The shape of a recipe in the list, as the API sends it
 export interface RecipeSummary {
   id: number;
+  user_id: number; // who owns it
   name: string;
   emoji: string;
   category: string;
@@ -8,11 +9,13 @@ export interface RecipeSummary {
   prep_time: number;
   cook_time: number;
   season: string;
-  last_made: string | null;
+  last_made: string | null; // 'YYYY-MM-DD': when the logged-in user last cooked it
+  saved: boolean; // the logged-in user bookmarked it
   visibility: Visibility;
 }
 
-export interface Ingredient {
+// One ingredient line on a recipe (not the same as a catalog Ingredient, below)
+export interface RecipeIngredient {
   quantity: string;
   unit: string;
   ingredient: string;
@@ -26,11 +29,10 @@ export interface Instruction {
 
 // A full recipe from GET /api/recipes/:id
 export interface RecipeDetail extends RecipeSummary {
-  user_id: number;
   description: string | null;
   created_at: string;
   updated_at: string;
-  ingredients: Ingredient[];
+  ingredients: RecipeIngredient[];
   instructions: Instruction[];
   tags: string[];
 }

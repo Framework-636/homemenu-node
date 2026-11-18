@@ -120,6 +120,10 @@ npm test              # API tests (needs the database running)
 | POST   | `/api/recipes`                       | Create a recipe (login required). Returns `201` with the new id                        |
 | PUT    | `/api/recipes/:id`                   | Replace one of your recipes. `204`, or `404` if it isn't yours                         |
 | DELETE | `/api/recipes/:id`                   | Delete one of your recipes and its ingredients, steps and tags. `204` or `404`         |
+| POST   | `/api/recipes/:id/cooked`            | We made this `{ cooked_on? }`: logs the cook, returns your `last_made`                 |
+| DELETE | `/api/recipes/:id/cooked/:date`      | Undo a cook for that day. Returns your `last_made`, or `404`                           |
+| PUT    | `/api/recipes/:id/saved`             | Bookmark someone's public recipe. `204`; `400` if it's your own                        |
+| DELETE | `/api/recipes/:id/saved`             | Remove a bookmark. `204` or `404`                                                      |
 | GET    | `/api/ingredients?q=`                | Search the shared ingredient catalog (login required)                                  |
 | GET    | `/api/staples`                       | Your staples, sorted by category (login required)                                      |
 | POST   | `/api/staples`                       | Add a staple `{ ingredient_id }`. `201`, or `409` if it's already in your kitchen      |
