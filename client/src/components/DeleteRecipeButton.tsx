@@ -21,7 +21,7 @@ export function DeleteRecipeButton({ recipeId, recipeName }: DeleteRecipeButtonP
     setError(null);
     const result = await sendJson('DELETE', `/api/recipes/${recipeId}`);
     if (result.ok) {
-      navigate('/'); // back to the list, which reloads without this recipe
+      navigate('/recipes'); // back to the list, which reloads without this recipe
       return;
     }
     if (result.status === 401) {

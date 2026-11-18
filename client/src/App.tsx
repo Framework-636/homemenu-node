@@ -8,6 +8,7 @@ import EditRecipePage from './pages/EditRecipePage.tsx';
 import StaplesPage from './pages/StaplesPage.tsx';
 import AvoidPage from './pages/AvoidPage.tsx';
 import GroceryPage from './pages/GroceryPage.tsx';
+import MenuPage from './pages/MenuPage.tsx';
 import './App.css';
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
         <nav className="user-nav">
           {checking ? null : user ? (
             <>
+              <Link to="/">Menu</Link>
+              <Link to="/recipes">Recipes</Link>
               <Link to="/grocery">Grocery</Link>
               <Link to="/staples">Staples</Link>
               <Link to="/avoid">Avoid</Link>
@@ -39,7 +42,9 @@ export default function App() {
         <p className="status">Loading…</p>
       ) : (
         <Routes key={user?.id ?? 'guest'}>
-          <Route path="/" element={<RecipeListPage />} />
+          {/* Home is the menu once you're logged in; guests browse recipes. */}
+          <Route path="/" element={user ? <MenuPage /> : <RecipeListPage />} />
+          <Route path="/recipes" element={<RecipeListPage />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<p className="status">Page not found.</p>} />

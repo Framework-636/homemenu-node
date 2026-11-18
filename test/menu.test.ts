@@ -44,7 +44,13 @@ async function getMenu(agent: Agent, query: Record<string, string | number> = {}
     .get('/api/menu')
     .query({ date: DAY, ...query })
     .expect(200);
-  return res.body as { meal: string; date: string; roll: number; picks: MenuPick[] };
+  return res.body as {
+    meal: string;
+    date: string;
+    roll: number;
+    picks: MenuPick[];
+    snoozed: { id: number; name: string; snoozed_until: string }[];
+  };
 }
 
 // Every recipe id the menu offers across several re-rolls.
@@ -150,6 +156,15 @@ describe('menu API', () => {
     expect(res.body).toEqual({ recipe_id: SALMON, snoozed_until: '2026-10-27' });
 
     expect(await everythingOffered(me)).toEqual([FAJITAS, SOUP]);
+    // The menu lists what's snoozed, so the page can offer it back.
+    expect((await getMenu(me)).snoozed).toEqual([
+      expect.objectContaining({
+        id: SALMON,
+        name: 'Grilled Lemon Salmon',
+        snoozed_until: '2026-10-27',
+      }),
+    ]);
+    expect((await getMenu(me, { date: '2026-10-27' })).snoozed).toEqual([]);
     expect(await everythingOffered(me, { date: '2026-10-26' })).not.toContain(SALMON);
     expect(await everythingOffered(me, { date: '2026-10-27' })).toContain(SALMON);
   });
@@ -172,7 +187,9 @@ describe('menu API', () => {
     expect(menu.picks.map((p) => p.recipe.id)).toEqual([SOUP]);
 
     await me.post('/api/menu/snooze').send({ recipe_id: SOUP, date: DAY }).expect(200);
-    expect((await getMenu(me, { meal: 'lunch' })).picks).toEqual([]);
+    const empty = await getMenu(me, { meal: 'lunch' });
+    expect(empty.picks).toEqual([]);
+    expect(empty.snoozed.map((s) => s.id)).toEqual([SOUP]); // still offered back
   });
 
   it('rejects bad requests', async () => {

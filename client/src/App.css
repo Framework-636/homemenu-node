@@ -764,3 +764,133 @@ header {
 .saved-badge {
   margin-left: 0.35rem;
 }
+
+/* ---------- Tonight's menu ---------- */
+.menu {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 2rem;
+  background: #fffdf8;
+  border: 1px solid #e4dcc8;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.08);
+  text-align: center;
+}
+
+.menu-date {
+  margin: 0;
+  color: #8a7f66;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.menu h1 {
+  margin: 0.25rem 0 1.5rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.menu-picks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-picks li {
+  padding: 1.5rem 0;
+  border-top: 1px solid #e4dcc8;
+}
+
+.menu-slot {
+  margin: 0 0 0.4rem;
+  color: #8a7f66;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.menu-dish {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.5rem;
+  color: #1f2933;
+  text-decoration: none;
+}
+
+.menu-dish:hover {
+  text-decoration: underline;
+}
+
+.menu-reason {
+  margin: 0.4rem 0 0;
+  font-style: italic;
+  color: #52606d;
+}
+
+.menu-meta {
+  margin: 0.2rem 0 0.6rem;
+  color: #8a7f66;
+  font-size: 0.85rem;
+}
+
+.snooze,
+.menu-snoozed button {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #8a7f66;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.snooze:hover,
+.menu-snoozed button:hover {
+  color: #1f2933;
+}
+
+.reroll {
+  font: inherit;
+  margin-top: 0.5rem;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid #1f2933;
+  border-radius: 999px;
+  background: none;
+  color: #1f2933;
+  cursor: pointer;
+}
+
+.reroll:hover {
+  background: #1f2933;
+  color: #fffdf8;
+}
+
+.menu-snoozed {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e4dcc8;
+  font-size: 0.9rem;
+  color: #52606d;
+}
+
+.menu-snoozed h2 {
+  margin: 0 0 0.5rem;
+  color: #8a7f66;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.menu-snoozed ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-snoozed li {
+  padding: 0.2rem 0;
+}

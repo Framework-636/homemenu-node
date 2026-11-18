@@ -23,6 +23,13 @@ interface CandidateRow extends RowDataPacket {
   saved: number; // 0 or 1
 }
 
+interface SnoozedRow extends RowDataPacket {
+  id: number;
+  name: string;
+  emoji: string;
+  snoozed_until: string; // 'YYYY-MM-DD'
+}
+
 interface IngredientLinkRow extends RowDataPacket {
   recipe_id: number;
   ingredient_id: number;
@@ -96,8 +103,20 @@ router.get('/', async (req, res) => {
     [userId, userId, userId, userId, MEAL_CATEGORIES[meal], userId, userId, date]
   );
 
+  // Dishes for this meal the user has snoozed, so the page can offer them back.
+  const [snoozed] = await pool.query<SnoozedRow[]>(
+    `SELECT r.id, r.name, r.emoji, DATE_FORMAT(z.snoozed_until, '%Y-%m-%d') AS snoozed_until
+     FROM recipe_snoozes z
+     JOIN recipes r ON r.id = z.recipe_id
+    WHERE z.user_id = ? AND z.snoozed_until > ?
+      AND r.category IN (?)
+      AND (r.visibility = 'public' OR r.user_id = ?)
+    ORDER BY r.name`,
+    [userId, date, MEAL_CATEGORIES[meal], userId]
+  );
+
   if (rows.length === 0) {
-    res.json({ meal, date, roll, picks: [] });
+    res.json({ meal, date, roll, picks: [], snoozed });
     return;
   }
 
@@ -150,6 +169,7 @@ router.get('/', async (req, res) => {
     meal,
     date,
     roll,
+    snoozed,
     picks: picks.map((pick) => {
       const row = byId.get(pick.recipeId)!;
       return {
