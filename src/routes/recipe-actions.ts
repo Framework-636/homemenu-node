@@ -3,7 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { z } from 'zod';
 import { pool } from '../db.ts';
 import { requireUser } from '../auth/middleware.ts';
-import { validationError } from './shared.ts';
+import { isFutureDate, utcDate, validationError } from './shared.ts';
 
 // Things a logged-in user does to a recipe without editing it:
 //   "We made this" (cook_log) and bookmarking someone's public recipe (saved_recipes).
@@ -23,8 +23,7 @@ const recipeIdParams = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-// The browser sends its own date. The server's clock is UTC, where 7 pm in
-// St. Louis is already tomorrow, so "today" has to come from the person cooking.
+// The browser sends its own date (see isFutureDate in shared.ts for why).
 const cookedBody = z.object({
   cooked_on: z.iso.date().optional(), // 'YYYY-MM-DD'
 });
@@ -33,11 +32,6 @@ const cookedDateParams = z.object({
   id: z.coerce.number().int().positive(),
   date: z.iso.date(),
 });
-
-// 'YYYY-MM-DD' in UTC, shifted by a number of days.
-function utcDate(offsetDays = 0): string {
-  return new Date(Date.now() + offsetDays * 86_400_000).toISOString().slice(0, 10);
-}
 
 // The recipe, if this user may see it (public, or their own). Same rule as the recipe pages.
 async function findVisibleRecipe(recipeId: number, userId: number) {
@@ -77,9 +71,8 @@ router.post('/:id/cooked', requireUser, async (req, res) => {
     res.status(400).json(validationError(body.error, 'Invalid date'));
     return;
   }
-  // Allow one day ahead of UTC, so every time zone's "today" is accepted.
   const cookedOn = body.data.cooked_on ?? utcDate();
-  if (cookedOn > utcDate(1)) {
+  if (isFutureDate(cookedOn)) {
     res.status(400).json({ error: "That date hasn't happened yet" });
     return;
   }
