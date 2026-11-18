@@ -182,10 +182,7 @@ describe('recipe actions API', () => {
 
     it("won't save your own recipe", async () => {
       const cook = await loginAs(COOK);
-      const own = await cook
-        .post('/api/recipes')
-        .send({ name: 'My Own Chili', visibility: 'public' })
-        .expect(201);
+      const own = await cook.post('/api/recipes').send({ name: 'My Own Chili' }).expect(201);
       await cook.put(`/api/recipes/${own.body.id}/saved`).expect(400);
     });
 
@@ -196,14 +193,18 @@ describe('recipe actions API', () => {
     });
 
     it('a bookmark disappears with the recipe', async () => {
-      const cook = await loginAs(COOK);
+      // Tests never create public recipes (other test files count the public ones),
+      // so this bookmark row is written directly instead of through the API.
       const friend = await loginAs(FRIEND);
-      const shared = await friend
+      const recipe = await friend
         .post('/api/recipes')
-        .send({ name: 'Short-Lived Stew', visibility: 'public' })
+        .send({ name: 'Short-Lived Stew' })
         .expect(201);
-      const id = shared.body.id as number;
-      await cook.put(`/api/recipes/${id}/saved`).expect(204);
+      const id = recipe.body.id as number;
+      await pool.query('INSERT INTO saved_recipes (user_id, recipe_id) VALUES (?, ?)', [
+        userIds[0],
+        id,
+      ]);
 
       await friend.delete(`/api/recipes/${id}`).expect(204);
       const [rows] = await pool.query('SELECT user_id FROM saved_recipes WHERE recipe_id = ?', [

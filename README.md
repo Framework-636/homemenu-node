@@ -139,6 +139,9 @@ npm test              # API tests (needs the database running)
 | POST   | `/api/grocery/items/:id/got-it`      | Got it: removes the item. `204` or `404`                                               |
 | POST   | `/api/grocery/items/:id/not-found`   | Couldn't find it: stays on the list, dated. `204` or `404`                             |
 | DELETE | `/api/grocery/items/:id`             | Remove an item. `204` or `404`                                                         |
+| GET    | `/api/menu?meal=&date=&roll=`        | Three picks (safe, medium, new) for breakfast, lunch or dinner. Stable for the day     |
+| POST   | `/api/menu/snooze`                   | Keep a recipe off your menu for 7 days `{ recipe_id, date? }`                          |
+| DELETE | `/api/menu/snooze/:recipeId`         | Bring a snoozed recipe back early. `204` or `404`                                      |
 
 **Status codes:** `400` invalid input · `401` not logged in or invalid login · `404` not found · `503` database unavailable · `500` unexpected server error
 

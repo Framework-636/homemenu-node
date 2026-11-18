@@ -10,6 +10,7 @@ import authRouter from './routes/auth.ts';
 import helmet from 'helmet';
 import groceryRouter from './routes/grocery.ts';
 import recipeActionsRouter from './routes/recipe-actions.ts';
+import menuRouter from './routes/menu.ts';
 import path from 'node:path';
 
 export const app = express();
@@ -46,6 +47,7 @@ app.use('/api/ingredients', ingredientsRouter);
 app.use('/api/staples', staplesRouter);
 app.use('/api/avoids', avoidsRouter);
 app.use('/api/grocery', groceryRouter);
+app.use('/api/menu', menuRouter);
 
 // Unknown API URLs get a JSON 404 (not an HTML page or the React app).
 app.use('/api', (_req, res) => {
