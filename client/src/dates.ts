@@ -27,3 +27,20 @@ export function longDate(isoDate: string): string {
     day: 'numeric',
   });
 }
+
+// The time on the user's clock, as 'HH:MM' in 24-hour time
+export function timeLocal(): string {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+// 45 -> '45 min', 230 -> '3 hr 50 min', 120 -> '2 hr'
+export function duration(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours === 0) return `${minutes} min`;
+  if (minutes === 0) return `${hours} hr`;
+  return `${hours} hr ${minutes} min`;
+}
