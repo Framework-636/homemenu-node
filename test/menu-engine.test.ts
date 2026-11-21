@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildMenu, familiarity, tierOf, type Candidate } from '../src/menu/engine.ts';
+import {
+  buildMenu,
+  familiarity,
+  minutesAvailable,
+  tierOf,
+  type Candidate,
+} from '../src/menu/engine.ts';
 
 // The engine is plain logic: no database, no clock. These tests build a small
 // household by hand and check what it gets offered.
@@ -15,6 +21,7 @@ function recipe(id: number, overrides: Partial<Candidate> = {}): Candidate {
     lastMade: null,
     linkedIngredients: 4,
     knownIngredients: 4,
+    totalMinutes: 30,
     ...overrides,
   };
 }
@@ -150,5 +157,50 @@ describe('buildMenu', () => {
       "Your recipe, and you haven't made it yet",
       'New to you, and you already use 3 of its 4 ingredients',
     ]);
+  });
+});
+
+describe('fitting the clock', () => {
+  it('works out how long a dish may take before dinner', () => {
+    expect(minutesAvailable('16:30', '18:30')).toBe(120);
+    expect(minutesAvailable('07:00', '18:30')).toBe(690);
+  });
+
+  it('still allows a quick dish late in the day and after dinner time', () => {
+    expect(minutesAvailable('18:15', '18:30')).toBe(45);
+    expect(minutesAvailable('21:20', '18:30')).toBe(45);
+  });
+
+  it('leaves out dishes that take too long', () => {
+    const crockpot = recipe(1, { totalMinutes: 600 });
+    const skillet = recipe(2, { totalMinutes: 30 });
+
+    for (let roll = 0; roll < 4; roll++) {
+      const picks = buildMenu({
+        candidates: [crockpot, skillet],
+        date: DATE,
+        seed: 'seed',
+        roll,
+        maxMinutes: 120,
+      });
+      expect(ids(picks)).toEqual([2]);
+    }
+  });
+
+  it('has no time limit unless one is given', () => {
+    const crockpot = recipe(1, { totalMinutes: 600 });
+    const skillet = recipe(2, { totalMinutes: 30 });
+    expect(ids(menu([crockpot, skillet])).sort()).toEqual([1, 2]);
+  });
+
+  it('offers the three quickest when nothing fits', () => {
+    const candidates = [
+      recipe(1, { totalMinutes: 600 }),
+      recipe(2, { totalMinutes: 90 }),
+      recipe(3, { totalMinutes: 60 }),
+      recipe(4, { totalMinutes: 75 }),
+    ];
+    const picks = buildMenu({ candidates, date: DATE, seed: 'seed', roll: 0, maxMinutes: 45 });
+    expect(ids(picks).sort()).toEqual([2, 3, 4]);
   });
 });

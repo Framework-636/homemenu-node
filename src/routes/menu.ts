@@ -3,7 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { z } from 'zod';
 import { pool } from '../db.ts';
 import { requireUser } from '../auth/middleware.ts';
-import { buildMenu, type Candidate } from '../menu/engine.ts';
+import { buildMenu, minutesAvailable, type Candidate } from '../menu/engine.ts';
 import { isFutureDate, utcDate, validationError } from './shared.ts';
 
 // This file does the database work for the menu: find what the user could be
@@ -44,14 +44,22 @@ const MEAL_CATEGORIES = {
   breakfast: ['Breakfast'],
   lunch: ['Lunch', 'Soup'],
   dinner: ['Dinner', 'Soup'],
+  snack: ['Snack', 'Dessert', 'Baking'],
 } as const;
 
 const SNOOZE_DAYS = 7;
 
+// When this household sits down to dinner. A constant for now; a setting later.
+const DINNER_TIME = '18:30';
+
 const menuQuery = z.object({
-  meal: z.enum(['breakfast', 'lunch', 'dinner']).default('dinner'),
+  meal: z.enum(['breakfast', 'lunch', 'dinner', 'snack']).default('dinner'),
   date: z.iso.date().optional(), // the browser's "today"
   roll: z.coerce.number().int().min(0).max(1000).default(0),
+  time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional(), // the browser's clock, 'HH:MM' in 24-hour time
 });
 
 const snoozeBody = z.object({
@@ -74,13 +82,19 @@ router.get('/', async (req, res) => {
     res.status(400).json(validationError(parsed.error, 'Invalid menu request'));
     return;
   }
-  const { meal, roll } = parsed.data;
+  const { meal, roll, time } = parsed.data;
   const date = parsed.data.date ?? utcDate();
   if (isFutureDate(date)) {
     res.status(400).json({ error: "That date hasn't happened yet" });
     return;
   }
   const userId = res.locals.user!.id;
+
+  // Dinner has a deadline. When the page tells us the time, work out how long
+  // a dish may take; otherwise (or for other meals) there is no limit.
+  const maxMinutes =
+    meal === 'dinner' && time !== undefined ? minutesAvailable(time, DINNER_TIME) : undefined;
+  const max_minutes = maxMinutes ?? null;
 
   // 1. Recipes this user could be offered for this meal: ones they can see,
   //    minus any that use an avoided ingredient, minus any they've snoozed.
@@ -116,7 +130,7 @@ router.get('/', async (req, res) => {
   );
 
   if (rows.length === 0) {
-    res.json({ meal, date, roll, picks: [], snoozed });
+    res.json({ meal, date, roll, max_minutes, picks: [], snoozed });
     return;
   }
 
@@ -158,17 +172,25 @@ router.get('/', async (req, res) => {
       lastMade: row.last_made,
       linkedIngredients: ingredientIds.length,
       knownIngredients: ingredientIds.filter((id) => known.has(id)).length,
+      totalMinutes: row.prep_time + row.cook_time,
     };
   });
 
   // The seed ties the menu to this user, this day and this meal.
-  const picks = buildMenu({ candidates, date, seed: `${userId}|${date}|${meal}`, roll });
+  const picks = buildMenu({
+    candidates,
+    date,
+    seed: `${userId}|${date}|${meal}`,
+    roll,
+    maxMinutes,
+  });
 
   const byId = new Map(rows.map((row) => [row.id, row]));
   res.json({
     meal,
     date,
     roll,
+    max_minutes,
     snoozed,
     picks: picks.map((pick) => {
       const row = byId.get(pick.recipeId)!;
@@ -205,6 +227,7 @@ router.post('/snooze', async (req, res) => {
     return;
   }
   const userId = res.locals.user!.id;
+
   const { recipe_id } = parsed.data;
 
   // Same visibility rule as the recipe pages: public, or your own.
