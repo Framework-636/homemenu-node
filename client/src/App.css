@@ -777,6 +777,10 @@ header {
   text-align: center;
 }
 
+.menu-tabs {
+  justify-content: center;
+}
+
 .menu-date {
   margin: 0;
   color: #8a7f66;

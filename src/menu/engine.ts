@@ -15,6 +15,7 @@ export interface Candidate {
   lastMade: string | null; // 'YYYY-MM-DD', by this user
   linkedIngredients: number; // ingredients tied to the catalog
   knownIngredients: number; // of those, how many this household already uses
+  totalMinutes: number; // prep time + cook time
 }
 
 export interface Pick {
@@ -28,6 +29,7 @@ export interface MenuInput {
   date: string; // 'YYYY-MM-DD': the day the menu is for
   seed: string; // same seed, same menu
   roll: number; // 0 = the day's first menu; each re-roll adds 1
+  maxMinutes?: number; // leave out dishes that take longer than this (no limit if missing)
 }
 
 // Cooked this many times or more: a regular.
@@ -36,6 +38,9 @@ export const SAFE_MIN_COOKS = 3;
 export const RECENT_DAYS = 7;
 // A new recipe counts as "from familiar ingredients" at this share or above.
 export const FAMILIAR_SHARE = 0.5;
+
+// Late in the day, or after dinner time, still offer dishes this quick.
+export const QUICK_MINUTES = 45;
 
 const SLOTS: Slot[] = ['safe', 'medium', 'new'];
 
@@ -120,13 +125,37 @@ const WEIGHTS: Record<Slot, (c: Candidate) => number> = {
   new: (c) => 0.1 + familiarity(c), // lean toward the most familiar
 };
 
+// ---------- Fitting the clock ----------
+
+// '18:30' -> 1110 (minutes since midnight)
+function toMinutes(time: string): number {
+  const [hours = 0, minutes = 0] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+// How long a dish may take and still be on the table by dinner.
+// Never less than QUICK_MINUTES: at 6:15, or at 9 pm, a quick dish is still worth offering.
+export function minutesAvailable(now: string, dinner: string): number {
+  return Math.max(toMinutes(dinner) - toMinutes(now), QUICK_MINUTES);
+}
+
+// Keep the dishes that fit in the time available.
+// If none do, offer the three quickest rather than an empty card.
+function fitTheClock(pool: Candidate[], maxMinutes: number | undefined): Candidate[] {
+  if (maxMinutes === undefined) return pool;
+  const inTime = pool.filter((c) => c.totalMinutes <= maxMinutes);
+  if (inTime.length > 0) return inTime;
+  return [...pool].sort((a, b) => a.totalMinutes - b.totalMinutes || a.id - b.id).slice(0, 3);
+}
+
 // ---------- Building the menu ----------
 
 // Up to three picks, one per slot, never the same recipe twice.
 // Recipes cooked in the last week are left out.
-export function buildMenu({ candidates, date, seed, roll }: MenuInput): Pick[] {
+export function buildMenu({ candidates, date, seed, roll, maxMinutes }: MenuInput): Pick[] {
   // Sort by id first so the result never depends on the order the database returned rows in.
-  const pool = candidates.filter((c) => !cookedRecently(c, date)).sort((a, b) => a.id - b.id);
+  const rested = candidates.filter((c) => !cookedRecently(c, date)).sort((a, b) => a.id - b.id);
+  const pool = fitTheClock(rested, maxMinutes);
 
   const tiers: Record<Slot, Candidate[]> = { safe: [], medium: [], new: [] };
   for (const candidate of pool) tiers[tierOf(candidate)].push(candidate);

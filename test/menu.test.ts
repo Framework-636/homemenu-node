@@ -48,6 +48,7 @@ async function getMenu(agent: Agent, query: Record<string, string | number> = {}
     meal: string;
     date: string;
     roll: number;
+    max_minutes: number | null;
     picks: MenuPick[];
     snoozed: { id: number; name: string; snoozed_until: string }[];
   };
@@ -192,12 +193,35 @@ describe('menu API', () => {
     expect(empty.snoozed.map((s) => s.id)).toEqual([SOUP]); // still offered back
   });
 
+  it('leaves out dinners that cannot be ready in time', async () => {
+    const me = await newUser();
+    const roast = await me
+      .post('/api/recipes')
+      .send({ name: 'All Day Roast', category: 'Dinner', cook_time: 480 })
+      .expect(201);
+    const roastId = roast.body.id as number;
+
+    // No clock sent: no limit, so the roast can be offered.
+    expect((await getMenu(me)).max_minutes).toBeNull();
+    expect(await everythingOffered(me)).toContain(roastId);
+
+    // 5:00 pm with dinner at 6:30 leaves 90 minutes.
+    expect((await getMenu(me, { time: '17:00' })).max_minutes).toBe(90);
+    expect(await everythingOffered(me, { time: '17:00' })).not.toContain(roastId);
+
+    // 8:00 am leaves all day, and the limit only applies to dinner.
+    expect(await everythingOffered(me, { time: '08:00' })).toContain(roastId);
+    expect((await getMenu(me, { meal: 'breakfast', time: '17:00' })).max_minutes).toBeNull();
+  });
+
   it('rejects bad requests', async () => {
     const me = await newUser();
     await me.get('/api/menu').query({ meal: 'brunch' }).expect(400);
     await me.get('/api/menu').query({ date: 'today' }).expect(400);
     await me.get('/api/menu').query({ date: '2099-01-01' }).expect(400);
     await me.get('/api/menu').query({ roll: -1 }).expect(400);
+    await me.get('/api/menu').query({ time: '6:30pm' }).expect(400);
+    await me.get('/api/menu').query({ time: '25:00' }).expect(400);
     await me.post('/api/menu/snooze').send({}).expect(400);
     await me.post('/api/menu/snooze').send({ recipe_id: DEMO_PRIVATE_CHILI }).expect(404);
     await me.post('/api/menu/snooze').send({ recipe_id: 999999 }).expect(404);

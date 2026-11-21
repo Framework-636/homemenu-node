@@ -125,9 +125,12 @@ export interface SnoozedRecipe {
   snoozed_until: string; // 'YYYY-MM-DD': first day it can come back
 }
 
+// The menus a day has
+export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
 // The whole response from GET /api/menu
 export interface Menu {
-  meal: string;
+  meal: Meal;
   date: string;
   roll: number;
   max_minutes: number | null; // the time limit the menu was built with, if any
