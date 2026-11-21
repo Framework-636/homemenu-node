@@ -214,6 +214,25 @@ describe('menu API', () => {
     expect((await getMenu(me, { meal: 'breakfast', time: '17:00' })).max_minutes).toBeNull();
   });
 
+  it('offers snacks, desserts and baking as the snack menu', async () => {
+    const me = await newUser();
+    const nachos = await me
+      .post('/api/recipes')
+      .send({ name: 'Midnight Nachos', category: 'Snack' })
+      .expect(201);
+    const cookies = await me
+      .post('/api/recipes')
+      .send({ name: 'Test Kitchen Cookies', category: 'Dessert' })
+      .expect(201);
+
+    const snacks = await everythingOffered(me, { meal: 'snack' });
+    expect(snacks).toEqual([nachos.body.id, cookies.body.id].sort((a, b) => a - b));
+
+    // Snacks stay off the dinner menu, and dinners off the snack menu.
+    expect(await everythingOffered(me)).not.toContain(nachos.body.id);
+    expect(snacks).not.toContain(FAJITAS);
+  });
+
   it('rejects bad requests', async () => {
     const me = await newUser();
     await me.get('/api/menu').query({ meal: 'brunch' }).expect(400);

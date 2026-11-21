@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "build": "npm run build --prefix client",
     "migrate": "node --env-file-if-exists=.env scripts/migrate.ts",
-    "create-user": "node --env-file-if-exists=.env scripts/create-user.ts"
+    "create-user": "node --env-file-if-exists=.env scripts/create-user.ts",
+    "reset-demo": "node --env-file-if-exists=.env scripts/reset-demo.ts"
   },
   "author": "Mitch Tully",
   "license": "UNLICENSED",
