@@ -164,6 +164,7 @@ scripts/
   migrate.ts             # Applies pending migrations
   deploy.sh              # Install, migrate, build, restart, health check (on the server)
   auto-deploy.sh         # Cron job: deploys when main has new commits
+  create-user.ts         # Creates a login (there is no sign-up page yet)
 src/
   app.ts                 # Express app: middleware, routes, error handler, serves the React build
   server.ts              # Starts listening (HOST/PORT)
