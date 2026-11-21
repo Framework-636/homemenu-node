@@ -107,6 +107,19 @@ npm run format:check  # Prettier
 npm test              # API tests (needs the database running)
 ```
 
+### Demo reset
+
+Anyone can log in to the demo account, so the live site puts it back in order every night:
+
+```bash
+npm run reset-demo                # full demo: recipes, staples, cooking history
+npm run reset-demo -- --baseline  # only the five recipes a fresh database starts with
+```
+
+The reset touches two accounts and nothing else: `demo`, and `homemenu` (a second author with no usable password, whose recipes are new to the demo cook). Recipes from the demo data are restored in place, so other people's bookmarks and cook logs for them survive. Anything a visitor added to the demo account is removed.
+
+On a development machine use `--baseline`: a few tests count the public recipes, and the full demo adds more.
+
 ## API Endpoints
 
 | Method | Endpoint                             | Description                                                                                |
@@ -165,11 +178,14 @@ scripts/
   deploy.sh              # Install, migrate, build, restart, health check (on the server)
   auto-deploy.sh         # Cron job: deploys when main has new commits
   create-user.ts         # Creates a login (there is no sign-up page yet)
+  reset-demo.ts          # Puts the demo account back to its starting state
+  reset-demo.sh          # Cron wrapper for the nightly reset on the server
 src/
   app.ts                 # Express app: middleware, routes, error handler, serves the React build
   server.ts              # Starts listening (HOST/PORT)
   db.ts                  # MariaDB connection pool (fails fast on missing env vars)
   auth/                  # Sessions and login middleware
+  demo/                  # Demo data, and the reset that restores one account to it
   routes/
     auth.ts              # Login (rate-limited), logout, current user
     recipes.ts           # Recipes: list, detail, create, update, delete
