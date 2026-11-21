@@ -130,6 +130,7 @@ export interface Menu {
   meal: string;
   date: string;
   roll: number;
+  max_minutes: number | null; // the time limit the menu was built with, if any
   picks: MenuPick[];
   snoozed: SnoozedRecipe[];
 }

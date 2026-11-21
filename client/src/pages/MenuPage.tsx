@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router';
 import { useAuth } from '../auth/AuthContext.ts';
 import { sendJson } from '../api.ts';
-import { longDate, todayLocal } from '../dates.ts';
+import { duration, longDate, timeLocal, todayLocal } from '../dates.ts';
 import type { Menu, MenuPick } from '../types.ts';
 
 // What each slot is called on the card.
@@ -28,7 +28,9 @@ function TonightsMenu() {
   useEffect(() => {
     let ignore = false;
     void (async () => {
-      const res = await fetch(`/api/menu?meal=dinner&date=${todayLocal()}&roll=${roll}`);
+      const res = await fetch(
+        `/api/menu?meal=dinner&date=${todayLocal()}&time=${timeLocal()}&roll=${roll}`
+      );
       if (ignore) return;
       if (res.status === 401) {
         sessionExpired();
@@ -74,6 +76,9 @@ function TonightsMenu() {
     <section className="menu">
       <p className="menu-date">{longDate(menu.date)}</p>
       <h1>Tonight's menu</h1>
+      {menu.max_minutes !== null && (
+        <p className="menu-note">Ready in {duration(menu.max_minutes)} or less</p>
+      )}
       {error && <p className="status error">{error}</p>}
 
       {menu.picks.length === 0 && <p className="status">Nothing left to suggest tonight.</p>}
