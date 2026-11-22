@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FieldIssue } from '../api.ts';
+import { useAuth } from '../auth/AuthContext.ts';
 import type { RecipeInput, Visibility } from '../types.ts';
 
 const CATEGORIES = ['Dinner', 'Lunch', 'Breakfast', 'Dessert', 'Snack', 'Soup', 'Baking', 'Other'];
@@ -97,6 +98,8 @@ interface RecipeFormProps {
 
 export function RecipeForm({ initial, submitLabel, onSubmit }: RecipeFormProps) {
   const [form, setForm] = useState<FormState>(() => toFormState(initial));
+  // The shared demo account can't publish, so it isn't offered the choice.
+  const canPublish = useAuth().user?.can_publish ?? true;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [issues, setIssues] = useState<FieldIssue[]>([]);
@@ -218,16 +221,20 @@ export function RecipeForm({ initial, submitLabel, onSubmit }: RecipeFormProps) 
             ))}
           </select>
         </label>
-        <label className="field">
-          Visibility
-          <select
-            value={form.visibility}
-            onChange={(e) => setField('visibility', e.target.value as Visibility)}
-          >
-            <option value="private">Private (only me)</option>
-            <option value="public">Public</option>
-          </select>
-        </label>
+        {canPublish ? (
+          <label className="field">
+            Visibility
+            <select
+              value={form.visibility}
+              onChange={(e) => setField('visibility', e.target.value as Visibility)}
+            >
+              <option value="private">Private (only me)</option>
+              <option value="public">Public</option>
+            </select>
+          </label>
+        ) : (
+          <p className="hint">Recipes added in the demo stay private to the demo account.</p>
+        )}
       </div>
 
       <div className="form-row">

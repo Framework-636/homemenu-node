@@ -42,6 +42,7 @@ export interface User {
   username: string;
   display_name: string;
   role: string;
+  can_publish: boolean; // false for the shared demo account
 }
 
 export type Visibility = 'private' | 'public';

@@ -5,7 +5,9 @@
 //   - recipes the account created during the day are removed
 //   - recipes from the seed data are restored in place (same row, same id), so
 //     other people's bookmarks and cook logs for them survive
-// Nothing owned by any other account is read, changed or deleted.
+// Nothing owned by any other account is changed or deleted, with one exception:
+// a seed recipe is found by its key, so if the seed data moves it to this account
+// it changes owner here (that is how the showcase moved to the library account).
 import type { PoolConnection } from 'mysql2/promise';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 
@@ -23,7 +25,6 @@ export interface SeedRecipe {
   tags: string[];
   ingredients: { quantity: string; unit: string; ingredient: string; slug?: string }[];
   steps: string[];
-  cookedDaysAgo?: number[]; // the account's cooking history for it, counted back from today
 }
 
 export interface SeedData {
@@ -31,6 +32,9 @@ export interface SeedData {
   staples: { slug: string; inStock: boolean }[];
   avoids: string[]; // ingredient slugs
   grocery: string[]; // extra items typed onto the grocery list
+  // Cooking history, counted back from today. The recipe (found by its key) can be anyone's.
+  cooked: { key: string; daysAgo: number[] }[];
+  saved: string[]; // keys of other people's recipes this account has bookmarked
 }
 
 export interface ResetSummary {
@@ -101,9 +105,10 @@ export async function resetAccount(
         recipe.visibility,
         recipe.season,
       ];
+      // Found by key alone: the row keeps its id even when the seed data gives it a new owner.
       const [existing] = await conn.query<RowDataPacket[]>(
-        'SELECT id FROM recipes WHERE user_id = ? AND seed_key = ?',
-        [userId, recipe.key]
+        'SELECT id FROM recipes WHERE seed_key = ?',
+        [recipe.key]
       );
 
       let recipeId: number;
@@ -112,9 +117,9 @@ export async function resetAccount(
         await conn.query(
           `UPDATE recipes
               SET name = ?, emoji = ?, category = ?, servings = ?, prep_time = ?, cook_time = ?,
-                  description = ?, visibility = ?, season = ?
+                  description = ?, visibility = ?, season = ?, user_id = ?
             WHERE id = ?`,
-          [...fields, recipeId]
+          [...fields, userId, recipeId]
         );
         summary.recipesRestored++;
       } else {
@@ -160,18 +165,36 @@ export async function resetAccount(
           recipe.tags.map((tag) => [recipeId, tag]),
         ]);
       }
+    }
 
-      // The account's cooking history for this recipe, counted back from today.
-      for (const daysAgo of recipe.cookedDaysAgo ?? []) {
+    // 4. Cooking history and bookmarks. These can point at anyone's seed recipes.
+    const recipeIdFor = async (key: string): Promise<number> => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        'SELECT id FROM recipes WHERE seed_key = ?',
+        [key]
+      );
+      const id = rows[0]?.id as number | undefined;
+      if (id === undefined) throw new Error(`Seed data names an unknown recipe: ${key}`);
+      return id;
+    };
+    for (const { key, daysAgo } of data.cooked) {
+      const recipeId = await recipeIdFor(key);
+      for (const days of daysAgo) {
         await conn.query(
           `INSERT INTO cook_log (user_id, recipe_id, cooked_on)
            VALUES (?, ?, DATE_SUB(?, INTERVAL ? DAY))`,
-          [userId, recipeId, today, daysAgo]
+          [userId, recipeId, today, days]
         );
       }
     }
+    for (const key of data.saved) {
+      await conn.query('INSERT INTO saved_recipes (user_id, recipe_id) VALUES (?, ?)', [
+        userId,
+        await recipeIdFor(key),
+      ]);
+    }
 
-    // 4. Staples, avoid list and grocery extras.
+    // 5. Staples, avoid list and grocery extras.
     for (const staple of data.staples) {
       await conn.query(
         "INSERT INTO kitchen_items (user_id, ingredient_id, kind, in_stock) VALUES (?, ?, 'staple', ?)",

@@ -4,8 +4,8 @@
 //   npm run reset-demo -- --baseline   only the five recipes a fresh database starts with
 //
 // It resets two accounts and nothing else (see src/demo/reset.ts):
-//   demo      the account visitors log in to
-//   homemenu  "HomeMenu Kitchen", a second author whose recipes are new to the demo cook.
+//   demo      the account visitors log in to: one household's lists and cooking history
+//   homemenu  "HomeMenu Kitchen", the library that owns every public demo recipe.
 //             Nobody can log in to it: its password field holds no valid hash.
 // Every other account, and everything those accounts own, is left alone.
 //
@@ -46,19 +46,25 @@ try {
     kitchenId = await userId(conn, KITCHEN_USER);
   }
 
-  // Kitchen first: the demo cook's menu draws on its recipes.
+  // Order matters, because recipes change hands between the two accounts:
+  //   full      library first (it takes the public recipes), then the demo household
+  //   baseline  demo first (it takes its five recipes back), then the library is emptied
   let kitchenCount = 0;
-  if (kitchenId !== undefined) {
+  const resetKitchen = async () => {
+    if (kitchenId === undefined) return;
     const data = baseline ? EMPTY : KITCHEN;
     await resetAccount(conn, kitchenId, data, today);
     kitchenCount = data.recipes.length;
-  }
+  };
+  if (!baseline) await resetKitchen();
   const summary = await resetAccount(conn, demoId, baseline ? BASELINE : FULL, today);
+  if (baseline) await resetKitchen();
 
   console.log(
     `Demo reset (${baseline ? 'baseline' : 'full'}): ` +
-      `${summary.recipesRestored + summary.recipesAdded} demo recipes in place, ` +
-      `${kitchenCount} kitchen recipes, ${summary.recipesRemoved} removed from the demo account.`
+      `${kitchenCount} library recipes, ` +
+      `${summary.recipesRestored + summary.recipesAdded} in the demo account, ` +
+      `${summary.recipesRemoved} removed from the demo account.`
   );
 } catch (err) {
   console.error('Demo reset failed:', err instanceof Error ? err.message : err);

@@ -13,6 +13,7 @@ interface LoginUserRow extends RowDataPacket {
   display_name: string;
   role: 'admin' | 'user';
   password_hash: string;
+  can_publish: number; // 0 or 1
 }
 
 const loginBody = z.object({
@@ -55,7 +56,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
 
   try {
     const [rows] = await pool.query<LoginUserRow[]>(
-      `SELECT id, username, display_name, role, password_hash
+      `SELECT id, username, display_name, role, password_hash, can_publish
        FROM users
        WHERE username = ? OR email = ?`,
       [username, username]
@@ -81,6 +82,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
         username: user.username,
         display_name: user.display_name,
         role: user.role,
+        can_publish: user.can_publish === 1,
       },
     });
   } catch (err) {

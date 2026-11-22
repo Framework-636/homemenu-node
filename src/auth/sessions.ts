@@ -11,9 +11,16 @@ export interface SessionUser {
   username: string;
   display_name: string;
   role: 'admin' | 'user';
+  can_publish: boolean; // false for the shared demo account: its recipes always stay private
 }
 
-interface SessionUserRow extends RowDataPacket, SessionUser {}
+interface SessionUserRow extends RowDataPacket {
+  id: number;
+  username: string;
+  display_name: string;
+  role: 'admin' | 'user';
+  can_publish: number; // MariaDB returns TINYINT as 0 or 1
+}
 
 // The database stores a SHA-256 hash of the token, never the token itself
 function hashToken(token: string): string {
@@ -38,7 +45,7 @@ export async function createSession(
 // Find the user for a token, or null if the session is missing or expired
 export async function findSessionUser(token: string): Promise<SessionUser | null> {
   const [rows] = await pool.query<SessionUserRow[]>(
-    `SELECT u.id, u.username, u.display_name, u.role
+    `SELECT u.id, u.username, u.display_name, u.role, u.can_publish
      FROM sessions s
      JOIN users u ON u.id = s.user_id
      WHERE s.id = ? AND s.expires_at > NOW()`,
@@ -46,7 +53,13 @@ export async function findSessionUser(token: string): Promise<SessionUser | null
   );
   const row = rows[0];
   if (!row) return null;
-  return { id: row.id, username: row.username, display_name: row.display_name, role: row.role };
+  return {
+    id: row.id,
+    username: row.username,
+    display_name: row.display_name,
+    role: row.role,
+    can_publish: row.can_publish === 1,
+  };
 }
 
 export async function deleteSession(token: string): Promise<void> {
