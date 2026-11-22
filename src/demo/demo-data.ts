@@ -524,7 +524,7 @@ const kitchenRecipes: SeedRecipe[] = [
   recipe({
     key: 'black-bean-quesadillas',
     name: 'Black Bean Quesadillas',
-    emoji: '🫓',
+    emoji: '🥙',
     category: 'Lunch',
     servings: 2,
     prep_time: 5,
