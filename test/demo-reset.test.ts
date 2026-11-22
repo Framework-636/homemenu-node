@@ -37,7 +37,6 @@ const SEED: SeedData = {
         { quantity: '', unit: '', ingredient: 'salt to taste' },
       ],
       steps: ['Brown the beef.', 'Simmer.'],
-      cookedDaysAgo: [10, 30],
     },
     {
       key: 'test-reset-toast',
@@ -61,6 +60,8 @@ const SEED: SeedData = {
   ],
   avoids: ['sardines'],
   grocery: ['Paper towels'],
+  cooked: [{ key: 'test-reset-stew', daysAgo: [10, 30] }],
+  saved: [],
 };
 
 async function createUser(username: string): Promise<number> {
@@ -219,6 +220,37 @@ describe('demo reset', () => {
     ).toBe(1);
   });
 
+  it('hands a seed recipe to another account without changing its id', async () => {
+    const stewId = await recipeId('test-reset-stew');
+    await pool.query('INSERT IGNORE INTO saved_recipes (user_id, recipe_id) VALUES (?, ?)', [
+      visitorId,
+      stewId,
+    ]);
+
+    // The seed data now says the stew belongs to the visitor account
+    // (this is how the public recipes moved from the demo account to the library).
+    const stew = SEED.recipes[0]!;
+    const conn = await pool.getConnection();
+    try {
+      await resetAccount(conn, visitorId, { ...SEED, recipes: [stew], cooked: [] }, TODAY);
+    } finally {
+      conn.release();
+    }
+
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT id, user_id FROM recipes WHERE seed_key = ?',
+      ['test-reset-stew']
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: stewId, user_id: visitorId });
+
+    // Take it back, with the showcase account's own history intact, for the tests below.
+    await reset();
+    expect(await recipeId('test-reset-stew')).toBe(stewId);
+    const me = await loginAs(SHOWCASE);
+    expect((await me.get(`/api/recipes/${stewId}`).expect(200)).body.last_made).toBe('2026-10-10');
+  });
+
   it('removes seed recipes that are no longer in the data', async () => {
     const onlyStew: SeedData = { ...SEED, recipes: [SEED.recipes[0]!] };
     const summary = await reset(onlyStew);
@@ -226,6 +258,37 @@ describe('demo reset', () => {
     expect(summary.recipesRemoved).toBe(1);
     expect(await recipeId('test-reset-toast')).toBeUndefined();
     await reset(); // put the toast back for any test that runs after this one
+  });
+
+  it('an account that may not publish can only save private recipes', async () => {
+    const me = await loginAs(SHOWCASE);
+    expect((await me.get('/api/auth/me').expect(200)).body.user.can_publish).toBe(true);
+
+    await pool.query('UPDATE users SET can_publish = 0 WHERE id = ?', [showcaseId]);
+    try {
+      expect((await me.get('/api/auth/me').expect(200)).body.user.can_publish).toBe(false);
+
+      // Asking for public is accepted, and quietly stored as private.
+      const created = await me
+        .post('/api/recipes')
+        .send({ name: 'Tried To Publish', visibility: 'public' })
+        .expect(201);
+      const id = created.body.id as number;
+      expect((await me.get(`/api/recipes/${id}`).expect(200)).body.visibility).toBe('private');
+
+      await me
+        .put(`/api/recipes/${id}`)
+        .send({ name: 'Tried Again', visibility: 'public' })
+        .expect(204);
+      expect((await me.get(`/api/recipes/${id}`).expect(200)).body.visibility).toBe('private');
+
+      // Nobody else can see it.
+      const visitor = await loginAs(VISITOR);
+      await visitor.get(`/api/recipes/${id}`).expect(404);
+      await me.delete(`/api/recipes/${id}`).expect(204);
+    } finally {
+      await pool.query('UPDATE users SET can_publish = 1 WHERE id = ?', [showcaseId]);
+    }
   });
 
   it('an account with no valid password hash cannot be logged in to', async () => {
@@ -265,6 +328,18 @@ describe('demo data', () => {
       'Grilled Lemon Salmon',
       'Secret Family Chili',
     ]);
+  });
+
+  it('keeps every public demo recipe out of the account visitors log in to', () => {
+    // The demo account is shared, so it must own nothing other people can see.
+    expect(FULL.recipes.every((r) => r.visibility === 'private')).toBe(true);
+    expect(KITCHEN.recipes.every((r) => r.visibility === 'public')).toBe(true);
+  });
+
+  it("only refers to recipes that exist in the demo's history and bookmarks", () => {
+    const keys = new Set([...FULL.recipes, ...KITCHEN.recipes].map((r) => r.key));
+    for (const { key } of FULL.cooked) expect(keys.has(key)).toBe(true);
+    for (const key of FULL.saved) expect(keys.has(key)).toBe(true);
   });
 
   it('fits the limits the recipe form enforces', () => {

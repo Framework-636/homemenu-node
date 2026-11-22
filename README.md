@@ -116,7 +116,12 @@ npm run reset-demo                # full demo: recipes, staples, cooking history
 npm run reset-demo -- --baseline  # only the five recipes a fresh database starts with
 ```
 
-The reset touches two accounts and nothing else: `demo`, and `homemenu` (a second author with no usable password, whose recipes are new to the demo cook). Recipes from the demo data are restored in place, so other people's bookmarks and cook logs for them survive. Anything a visitor added to the demo account is removed.
+The reset touches two accounts and nothing else:
+
+- `homemenu` is the library. It owns every public demo recipe and has no usable password, so no visitor can edit the showcase.
+- `demo` is one household using the site: staples, an avoid list, a grocery list and a cooking history. It cannot publish, so anything a visitor adds there stays private until the reset removes it.
+
+Recipes from the demo data are restored in place, so other people's bookmarks and cook logs for them survive.
 
 On a development machine use `--baseline`: a few tests count the public recipes, and the full demo adds more.
 
@@ -213,6 +218,7 @@ tsconfig.json            # TypeScript settings (type-check only, no build output
 - **One form, two pages:** `RecipeForm` only collects input; the new and edit pages decide what to do with it (POST or PUT). Rows use stable keys so adding, removing and reordering never mixes up what was typed. The browser checks obvious mistakes, and the API validates everything again.
 - **Delete asks twice, inline:** the first click only changes the button to "Yes, delete / Cancel", so nothing is lost by accident, and there's no browser popup.
 - **Security headers:** `helmet` sets a Content Security Policy, `nosniff`, HSTS and clickjacking protection, and removes `X-Powered-By`.
+- **A shared demo account that can't deface the site:** the public recipes belong to a library account nobody can log in to, and the demo account's `can_publish` flag is off, so the API stores whatever it saves as private.
 - **Login rate limiting:** 10 failed logins per IP address in 15 minutes, then even correct passwords are refused until the window passes. Behind the production proxy, `trust proxy` makes sure the limit applies to each visitor rather than to Apache.
 - **One server in production:** Express serves the built React files and falls back to `index.html` for app URLs, so refreshing on `/recipes/5` works. Unknown `/api` URLs return a JSON 404 instead of the app's HTML.
 

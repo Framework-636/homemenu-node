@@ -140,6 +140,15 @@ const PER_USER_COLUMNS = `
   EXISTS (SELECT 1 FROM saved_recipes s
            WHERE s.recipe_id = r.id AND s.user_id = ?) AS saved`;
 
+// An account that may not publish (the shared demo account) can only save private recipes,
+// whatever the form asked for. Nothing a visitor types there is ever shown to other people.
+function allowedVisibility(
+  user: { can_publish: boolean },
+  requested: 'private' | 'public'
+): 'private' | 'public' {
+  return user.can_publish ? requested : 'private';
+}
+
 const router = Router();
 
 // GET /api/recipes - public recipes, plus the logged-in user's own private ones
@@ -225,6 +234,7 @@ router.post('/', requireUser, async (req, res, next) => {
   }
   const input = parsed.data;
   const userId = res.locals.user!.id; // requireUser guarantees a user
+  const visibility = allowedVisibility(res.locals.user!, input.visibility);
 
   try {
     const id = await withTransaction(async (conn) => {
@@ -241,7 +251,7 @@ router.post('/', requireUser, async (req, res, next) => {
           input.prep_time,
           input.cook_time,
           input.description,
-          input.visibility,
+          visibility,
           input.season,
         ]
       );
@@ -269,6 +279,7 @@ router.put('/:id', requireUser, async (req, res, next) => {
   const { id } = params.data;
   const input = parsed.data;
   const userId = res.locals.user!.id; // requireUser guarantees a user
+  const visibility = allowedVisibility(res.locals.user!, input.visibility);
 
   try {
     const found = await withTransaction(async (conn) => {
@@ -293,7 +304,7 @@ router.put('/:id', requireUser, async (req, res, next) => {
           input.prep_time,
           input.cook_time,
           input.description,
-          input.visibility,
+          visibility,
           input.season,
           id,
         ]

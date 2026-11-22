@@ -1,8 +1,9 @@
 // What the demo account looks like after a reset. All of it is fictional.
 //
-// BASELINE is the five recipes every fresh database starts with (db/init/002_seed.sql);
-// the automated tests count on exactly those. FULL and KITCHEN add enough recipes,
-// staples and cooking history for the live demo to have something on every menu.
+// BASELINE is the five recipes every fresh database starts with (db/init/002_seed.sql),
+// all owned by the demo account; the automated tests count on exactly that.
+// FULL and KITCHEN are the live demo: a library of public recipes, and one household
+// (the demo account) with staples and a cooking history, so every menu has something on it.
 import type { SeedData, SeedRecipe } from './reset.ts';
 
 // [quantity, unit, ingredient as written, catalog slug it links to (optional)]
@@ -155,15 +156,24 @@ export const BASELINE: SeedData = {
   staples: [],
   avoids: [],
   grocery: [],
+  cooked: [],
+  saved: [],
 };
 
 // An account with nothing in it.
-export const EMPTY: SeedData = { recipes: [], staples: [], avoids: [], grocery: [] };
+export const EMPTY: SeedData = {
+  recipes: [],
+  staples: [],
+  avoids: [],
+  grocery: [],
+  cooked: [],
+  saved: [],
+};
 
 // ---------- The fuller demo ----------
 
-// Recipes the demo cook wrote and makes.
-const demoExtras: SeedRecipe[] = [
+// Everyday recipes. The demo cook makes these regularly.
+const everyday: SeedRecipe[] = [
   recipe({
     key: 'spaghetti-meat-sauce',
     name: 'Spaghetti with Meat Sauce',
@@ -174,7 +184,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 30,
     description: 'The weeknight standby.',
     tags: ['weeknight', 'kid-friendly'],
-    cookedDaysAgo: [8, 22, 36, 50, 71],
     ingredients: [
       ['12', 'oz', 'spaghetti', 'spaghetti'],
       ['1', 'lb', 'ground beef', 'ground-beef'],
@@ -201,7 +210,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 15,
     description: 'Everyone builds their own.',
     tags: ['weeknight', 'quick'],
-    cookedDaysAgo: [12, 26, 40],
     ingredients: [
       ['1', 'lb', 'ground turkey', 'ground-turkey'],
       ['1', 'packet', 'taco seasoning', 'taco-seasoning'],
@@ -226,7 +234,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 25,
     description: 'One pot, no draining the pasta.',
     tags: ['one-pot', 'kid-friendly'],
-    cookedDaysAgo: [15, 44],
     ingredients: [
       ['1', 'lb', 'ground beef', 'ground-beef'],
       ['1', '', 'yellow onion, diced', 'yellow-onion'],
@@ -253,7 +260,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 30,
     description: 'Chicken thighs and rice cooked together in one pan.',
     tags: ['one-pan'],
-    cookedDaysAgo: [20],
     ingredients: [
       ['1.5', 'lb', 'chicken thighs', 'chicken-thighs'],
       ['1', 'tbsp', 'olive oil', 'olive-oil'],
@@ -279,7 +285,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 5,
     description: 'Low heat and patience.',
     tags: ['quick'],
-    cookedDaysAgo: [9, 30],
     ingredients: [
       ['4', '', 'eggs', 'eggs'],
       ['1', 'tbsp', 'butter', 'butter'],
@@ -302,7 +307,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 8,
     description: 'Good with the tomato soup.',
     tags: ['quick', 'kid-friendly'],
-    cookedDaysAgo: [13, 27, 41],
     ingredients: [
       ['2', 'slices', 'sandwich bread', 'sandwich-bread'],
       ['2', 'slices', 'cheddar cheese', 'cheddar-cheese'],
@@ -340,7 +344,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 10,
     description: 'No flour needed.',
     tags: ['baking', 'kid-friendly'],
-    cookedDaysAgo: [19],
     ingredients: [
       ['1', 'cup', 'peanut butter', 'peanut-butter'],
       ['1', 'cup', 'sugar', 'sugar'],
@@ -364,7 +367,6 @@ const demoExtras: SeedRecipe[] = [
     description: 'Start it in the morning. The dinner menu stops offering it once it is too late.',
     season: 'winter',
     tags: ['slow cooker'],
-    cookedDaysAgo: [14, 42, 70],
     ingredients: [
       ['3', 'lb', 'chuck roast', 'chuck-roast'],
       ['1.5', 'lb', 'potatoes, quartered', 'potatoes'],
@@ -389,7 +391,6 @@ const demoExtras: SeedRecipe[] = [
     cook_time: 0,
     description: 'A good use for leftover chicken.',
     tags: ['quick', 'no-cook'],
-    cookedDaysAgo: [16],
     ingredients: [
       ['2', 'cup', 'cooked chicken breast, chopped', 'chicken-breast'],
       ['0.25', 'cup', 'mayonnaise', 'mayonnaise'],
@@ -404,9 +405,9 @@ const demoExtras: SeedRecipe[] = [
   }),
 ];
 
-// Recipes from a second author, the "HomeMenu Kitchen" account. The demo cook has
-// never made these, so they are what its menu offers as something new.
-const kitchenRecipes: SeedRecipe[] = [
+// More from the library. The demo cook has never made these, so they are what
+// its menu offers as something new.
+const untried: SeedRecipe[] = [
   recipe({
     key: 'sausage-potato-sheet-pan',
     name: 'Sausage & Potato Sheet Pan',
@@ -613,15 +614,11 @@ const kitchenRecipes: SeedRecipe[] = [
   }),
 ];
 
+// The demo account: one household using the site. It owns a single private
+// recipe; everything public belongs to the library account below, where no
+// visitor can edit it.
 export const FULL: SeedData = {
-  recipes: [
-    { ...fajitas, cookedDaysAgo: [10, 24, 45, 66] },
-    { ...oats, cookedDaysAgo: [8, 11, 15, 22] },
-    { ...soup, cookedDaysAgo: [2] }, // cooked this week, so it's resting off the menu
-    salmon,
-    chili,
-    ...demoExtras,
-  ],
+  recipes: [chili],
   staples: [
     { slug: 'milk', inStock: true },
     { slug: 'eggs', inStock: true },
@@ -643,6 +640,27 @@ export const FULL: SeedData = {
   ],
   avoids: ['sardines', 'mushrooms'],
   grocery: ['Paper towels', 'Dish soap'],
+  cooked: [
+    { key: 'sheet-pan-chicken-fajitas', daysAgo: [10, 24, 45, 66] },
+    { key: 'overnight-oats', daysAgo: [8, 11, 15, 22] },
+    { key: 'tomato-basil-soup', daysAgo: [2] }, // cooked this week, so it's resting off the menu
+    { key: 'spaghetti-meat-sauce', daysAgo: [8, 22, 36, 50, 71] },
+    { key: 'turkey-taco-night', daysAgo: [12, 26, 40] },
+    { key: 'one-pot-beef-macaroni', daysAgo: [15, 44] },
+    { key: 'chicken-rice-skillet', daysAgo: [20] },
+    { key: 'scrambled-eggs-toast', daysAgo: [9, 30] },
+    { key: 'grilled-cheese', daysAgo: [13, 27, 41] },
+    { key: 'peanut-butter-cookies', daysAgo: [19] },
+    { key: 'slow-cooker-pot-roast', daysAgo: [14, 42, 70] },
+    { key: 'chicken-salad-sandwich', daysAgo: [16] },
+    { key: 'apples-peanut-butter', daysAgo: [9, 16, 23, 37] },
+  ],
+  saved: ['baked-pork-chops', 'banana-bread'],
 };
 
-export const KITCHEN: SeedData = { ...EMPTY, recipes: kitchenRecipes };
+// The library: every public recipe, owned by the "HomeMenu Kitchen" account that
+// nobody can log in to.
+export const KITCHEN: SeedData = {
+  ...EMPTY,
+  recipes: [fajitas, oats, soup, salmon, ...everyday, ...untried],
+};
