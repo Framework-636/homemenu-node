@@ -9,8 +9,7 @@
 //             Nobody can log in to it: its password field holds no valid hash.
 // Every other account, and everything those accounts own, is left alone.
 //
-// On a development machine use --baseline, or expect a few tests to fail: they
-// count the public recipes, and the full demo adds more.
+// Safe to run on a development machine: the tests use their own database.
 import type { PoolConnection } from 'mysql2/promise';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from '../src/db.ts';

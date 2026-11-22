@@ -107,6 +107,8 @@ npm run format:check  # Prettier
 npm test              # API tests (needs the database running)
 ```
 
+`npm test` never touches your development data. Before each run it rebuilds a separate database (`DB_NAME` plus `_test`, so `homemenu_test`) from `db/init` and the migrations, using the Docker database's root password from `.env`. Whatever you add by hand, the tests start from the same data every time.
+
 ### Demo reset
 
 Anyone can log in to the demo account, so the live site puts it back in order every night:
@@ -123,7 +125,7 @@ The reset touches two accounts and nothing else:
 
 Recipes from the demo data are restored in place, so other people's bookmarks and cook logs for them survive.
 
-On a development machine use `--baseline`: a few tests count the public recipes, and the full demo adds more.
+Both are safe to run on a development machine, because the tests use a database of their own.
 
 ## API Endpoints
 
@@ -194,7 +196,7 @@ src/
   routes/
     auth.ts              # Login (rate-limited), logout, current user
     recipes.ts           # Recipes: list, detail, create, update, delete
-test/                    # Integration tests (Vitest + Supertest) against a real database
+test/                    # Integration tests (Vitest + Supertest) against their own database
 compose.yaml             # Local database (and optional API container)
 Dockerfile               # API image (non-root, production deps only)
 tsconfig.json            # TypeScript settings (type-check only, no build output)
@@ -208,7 +210,7 @@ tsconfig.json            # TypeScript settings (type-check only, no build output
 - **Centralized errors:** routes pass errors to a single handler that logs details on the server and returns a generic message to clients.
 - **Container security:** the API image runs as the unprivileged `node` user, and secrets come from environment variables. They're never baked into the image.
 - **Typed queries:** each query declares the shape of its rows, so column names are checked and autocompleted.
-- **Integration tests:** Vitest and Supertest call the API in-process against the seeded database, covering success, not-found, private and invalid-input cases.
+- **Integration tests on their own database:** Vitest and Supertest call the API in-process. Each run first rebuilds a separate test database from the baseline schema and the migrations, so results never depend on development data, and every migration is exercised on every run.
 - **Server-side sessions:** random 256-bit tokens in an `HttpOnly`, `SameSite=Lax` cookie; the database stores only their SHA-256 hash, so a leaked table can't be replayed. Sessions can be revoked instantly, unlike JWTs.
 - **Login hardening:** bcrypt password hashes, one error message for unknown users and wrong passwords, and a dummy hash comparison so both take the same time.
 - **Per-user visibility in SQL:** `visibility = 'public' OR user_id = ?`. Logged out, the user id is `NULL`, which never matches, so no special case is needed. Other users' private recipes return 404, not 403, so their existence isn't revealed.
