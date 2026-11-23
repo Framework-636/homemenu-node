@@ -12,10 +12,11 @@ export default function LoginPage() {
   // Already logged in? Go to the recipe list.
   if (user) return <Navigate to="/" replace />;
 
-  async function handleSubmit() {
+  // Used by both the form and the demo button, so it takes the name and password as arguments.
+  async function logIn(name: string, pass: string) {
     setSubmitting(true);
     setError(null);
-    const message = await login(username, password);
+    const message = await login(name, pass);
     setSubmitting(false);
     if (message) setError(message);
     // On success, `user` is set, this page re-renders, and <Navigate> redirects.
@@ -27,7 +28,7 @@ export default function LoginPage() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          void handleSubmit();
+          void logIn(username, password);
         }}
       >
         <label>
@@ -59,7 +60,14 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="status">
-        Demo account: <code>demo</code> / <code>demo-password</code>
+        Just looking around?{' '}
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={() => void logIn('demo', 'demo-password')}
+        >
+          Try the demo
+        </button>
       </p>
     </div>
   );
